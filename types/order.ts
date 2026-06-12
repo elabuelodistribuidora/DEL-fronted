@@ -1,0 +1,70 @@
+export type OrderStatus =
+  | 'pending'
+  | 'paid'
+  | 'processing'
+  | 'shipped'
+  | 'delivered'
+  | 'cancelled'
+
+export type ShippingAddress = {
+  fullName: string
+  street: string
+  number: string
+  floor?: string
+  city: string
+  province: string
+  postalCode: string
+  phone: string
+}
+
+/** Item de una orden: snapshot del producto al momento de la compra. */
+export type OrderItem = {
+  id: string
+  productId: string
+  variantId?: string | null
+  name: string
+  brand: string
+  unit: string
+  image?: string | null
+  variantName?: string | null
+  unitPrice: number
+  quantity: number
+  lineTotal?: number
+}
+
+export type OrderPayment = {
+  id: string
+  provider: 'mercadopago' | 'transfer' | 'cash'
+  status: string
+  amount: number
+  externalId?: string | null
+}
+
+export type Order = {
+  id: string
+  number: number
+  userId: string
+  status: OrderStatus
+  items: OrderItem[]
+  shippingAddress: ShippingAddress
+  shippingMethod: 'andreani' | 'oca' | 'pickup'
+  shippingCost: number
+  subtotal: number
+  total: number
+  paymentMethod: 'mercadopago' | 'transfer' | 'cash'
+  payment?: OrderPayment | null
+  trackingCode?: string | null
+  notes?: string | null
+  createdAt: string
+  updatedAt: string
+  user?: { id: string; name: string; email: string }
+}
+
+export const ORDER_STATUS_LABELS: Record<OrderStatus, string> = {
+  pending: 'Pendiente',
+  paid: 'Pagado',
+  processing: 'En preparación',
+  shipped: 'Enviado',
+  delivered: 'Entregado',
+  cancelled: 'Cancelado',
+}

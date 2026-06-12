@@ -1,0 +1,202 @@
+'use client'
+
+import Link from 'next/link'
+import Image from 'next/image'
+import {
+  ShoppingCart,
+  ArrowRight,
+  Package,
+  Minus,
+  Plus,
+  Trash2,
+  Lock,
+} from 'lucide-react'
+import { SiteHeader } from '@/components/layout/site-header'
+import { SiteFooter } from '@/components/layout/site-footer'
+import { Button } from '@/components/ui/button'
+import { useCart } from '@/hooks/useCart'
+import { useAuth } from '@/hooks/useAuth'
+import { formatPrice } from '@/utils/formatters'
+
+export default function CarritoPage() {
+  const { items, isEmpty, removeItem, updateQuantity, total } = useCart()
+  const { isAuthenticated } = useAuth()
+
+  return (
+    <div className="flex min-h-screen flex-col">
+      <SiteHeader />
+      <main className="flex-1">
+        <div className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+          <h1 className="font-heading text-2xl font-bold text-foreground sm:text-3xl">
+            Tu carrito
+          </h1>
+
+          {isEmpty ? (
+            <div className="mt-16 flex flex-col items-center gap-4 text-center">
+              <ShoppingCart className="size-16 text-muted-foreground/30" />
+              <p className="font-heading text-lg font-semibold text-foreground">
+                Tu carrito está vacío
+              </p>
+              <p className="text-sm text-muted-foreground">
+                Explorá el catálogo y agregá productos.
+              </p>
+              <Button asChild className="mt-2 rounded-full">
+                <Link href="/catalogo">
+                  Ver catálogo
+                  <ArrowRight className="size-4" />
+                </Link>
+              </Button>
+            </div>
+          ) : (
+            <div className="mt-8 grid gap-8 lg:grid-cols-3">
+              {/* Items */}
+              <div className="space-y-4 lg:col-span-2">
+                {items.map((item) => (
+                  <div key={item.id} className="cart-item">
+                    <div className="cart-item__image flex items-center justify-center overflow-hidden">
+                      {item.product.imageUrl ? (
+                        <Image
+                          src={item.product.imageUrl}
+                          alt={item.product.name}
+                          width={80}
+                          height={80}
+                          className="h-full w-full object-cover"
+                        />
+                      ) : (
+                        <Package className="size-8 text-muted-foreground/30" />
+                      )}
+                    </div>
+                    <div className="flex flex-1 flex-col gap-2">
+                      <div className="flex items-start justify-between gap-2">
+                        <div>
+                          <p className="font-heading text-sm font-semibold text-foreground">
+                            {item.product.name}
+                          </p>
+                          <p className="text-xs text-muted-foreground">
+                            {item.product.brand} · {item.product.unit}
+                          </p>
+                          {item.variantName && (
+                            <p className="text-xs text-muted-foreground">
+                              Variante: {item.variantName}
+                            </p>
+                          )}
+                        </div>
+                        <p className="font-heading text-sm font-semibold text-foreground">
+                          {formatPrice(item.price * item.quantity)}
+                        </p>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Button
+                          variant="outline"
+                          size="icon"
+                          className="size-7 rounded-full"
+                          onClick={() =>
+                            updateQuantity(
+                              item.product.id,
+                              item.quantity - 1,
+                              item.variantId,
+                            )
+                          }
+                        >
+                          <Minus className="size-3" />
+                        </Button>
+                        <span className="w-6 text-center text-sm font-medium">
+                          {item.quantity}
+                        </span>
+                        <Button
+                          variant="outline"
+                          size="icon"
+                          className="size-7 rounded-full"
+                          onClick={() =>
+                            updateQuantity(
+                              item.product.id,
+                              item.quantity + 1,
+                              item.variantId,
+                            )
+                          }
+                        >
+                          <Plus className="size-3" />
+                        </Button>
+                        <span className="text-xs text-muted-foreground">
+                          {formatPrice(item.price)} c/u
+                        </span>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="ml-auto size-7 text-destructive hover:text-destructive"
+                          onClick={() =>
+                            removeItem(item.product.id, item.variantId)
+                          }
+                        >
+                          <Trash2 className="size-3.5" />
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Resumen */}
+              <div className="h-fit rounded-xl border border-border bg-card p-6">
+                <h2 className="font-heading text-base font-semibold text-foreground">
+                  Resumen del pedido
+                </h2>
+                <div className="mt-4 space-y-2 text-sm">
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Subtotal</span>
+                    <span className="font-medium text-foreground">
+                      {formatPrice(total)}
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Envío</span>
+                    <span className="text-muted-foreground">
+                      Se calcula en el checkout
+                    </span>
+                  </div>
+                </div>
+                <div className="mt-4 flex justify-between border-t border-border pt-4">
+                  <span className="font-heading font-semibold text-foreground">
+                    Total
+                  </span>
+                  <span className="font-heading text-lg font-bold text-foreground">
+                    {formatPrice(total)}
+                  </span>
+                </div>
+
+                {isAuthenticated ? (
+                  <Button asChild className="mt-6 w-full rounded-full">
+                    <Link href="/checkout">
+                      Continuar con el pedido
+                      <ArrowRight className="size-4" />
+                    </Link>
+                  </Button>
+                ) : (
+                  <>
+                    <Button asChild className="mt-6 w-full rounded-full">
+                      <Link href="/cuenta?callbackUrl=/checkout">
+                        <Lock className="size-4" />
+                        Iniciá sesión para continuar
+                      </Link>
+                    </Button>
+                    <p className="mt-2 text-center text-xs text-muted-foreground">
+                      Necesitás una cuenta mayorista para finalizar la compra.
+                    </p>
+                  </>
+                )}
+                <Button
+                  variant="ghost"
+                  asChild
+                  className="mt-2 w-full text-muted-foreground"
+                >
+                  <Link href="/catalogo">Seguir comprando</Link>
+                </Button>
+              </div>
+            </div>
+          )}
+        </div>
+      </main>
+      <SiteFooter />
+    </div>
+  )
+}

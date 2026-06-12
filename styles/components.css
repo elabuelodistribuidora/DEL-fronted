@@ -1,0 +1,121 @@
+/* =========================================================
+   styles/components.css  —  Estilos reutilizables de
+   tarjetas, badges, formularios y botones custom
+   ========================================================= */
+
+@layer components {
+  /* Product card — group se agrega directo en el JSX */
+  .product-card {
+    @apply flex flex-col overflow-hidden rounded-xl border border-border bg-card
+           transition-all hover:border-primary/30 hover:shadow-lg hover:shadow-primary/5;
+  }
+
+  .product-card__image {
+    @apply relative flex aspect-square items-center justify-center bg-muted overflow-hidden;
+  }
+
+  .product-card__body {
+    @apply flex flex-1 flex-col gap-3 p-4;
+  }
+
+  .product-card__category {
+    @apply text-xs font-medium uppercase tracking-wide text-muted-foreground;
+  }
+
+  .product-card__name {
+    @apply text-pretty text-sm font-semibold leading-snug text-foreground;
+  }
+
+  /* Cart item */
+  .cart-item {
+    @apply flex gap-4 rounded-xl border border-border bg-card p-4;
+  }
+
+  .cart-item__image {
+    @apply size-20 shrink-0 overflow-hidden rounded-lg bg-muted;
+  }
+
+  /* Feature card (home) */
+  .feature-card {
+    @apply flex items-start gap-4 rounded-xl border border-border bg-card p-5
+           transition-colors hover:border-primary/30;
+  }
+
+  .feature-card__icon {
+    @apply flex size-11 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary;
+  }
+
+  /* Section heading */
+  .section-eyebrow {
+    @apply text-sm font-semibold uppercase tracking-[0.2em] text-primary;
+  }
+
+  .section-title {
+    @apply mt-2 text-balance text-2xl font-bold text-foreground sm:text-3xl;
+  }
+
+  /* Stat display */
+  .stat-value {
+    @apply text-2xl font-bold text-accent;
+  }
+
+  .stat-label {
+    @apply text-sm text-primary-foreground/70;
+  }
+
+  /* Admin table */
+  .data-table {
+    @apply w-full text-sm;
+  }
+
+  .data-table th {
+    @apply border-b border-border px-4 py-3 text-left text-xs font-semibold uppercase
+           tracking-wide text-muted-foreground;
+  }
+
+  .data-table td {
+    @apply border-b border-border px-4 py-3 text-foreground;
+  }
+
+  .data-table tr:last-child td {
+    @apply border-b-0;
+  }
+
+  /* Status badge */
+  .status-badge {
+    @apply inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-medium;
+  }
+
+  .status-badge--pending {
+    @apply bg-amber-100 text-amber-800;
+  }
+
+  .status-badge--paid {
+    @apply bg-blue-100 text-blue-800;
+  }
+
+  .status-badge--shipped {
+    @apply bg-purple-100 text-purple-800;
+  }
+
+  .status-badge--delivered {
+    @apply bg-green-100 text-green-800;
+  }
+
+  .status-badge--cancelled {
+    @apply bg-red-100 text-red-800;
+  }
+
+  /* Form section */
+  .form-section {
+    @apply rounded-xl border border-border bg-card p-6;
+  }
+
+  .form-section__title {
+    @apply text-base font-semibold text-foreground;
+  }
+
+  .form-section__grid {
+    @apply mt-4 grid gap-4 sm:grid-cols-2;
+  }
+}

@@ -1,0 +1,53 @@
+/* =========================================================
+   styles/layout.css  —  Header, Footer, Sidebar admin
+   ========================================================= */
+
+@layer components {
+  .site-header {
+    @apply sticky top-0 z-50 border-b border-border/60 bg-background/80 backdrop-blur-md;
+  }
+
+  .site-header__inner {
+    @apply mx-auto flex h-16 w-full max-w-7xl items-center gap-4 px-4 sm:px-6 lg:px-8;
+  }
+
+  .nav-link {
+    @apply rounded-md px-3 py-2 text-sm font-medium transition-colors text-muted-foreground hover:text-foreground;
+  }
+
+  .nav-link--active {
+    @apply text-primary;
+  }
+
+  .site-footer {
+    @apply bg-primary text-primary-foreground;
+  }
+
+  .site-footer__inner {
+    @apply mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8;
+  }
+
+  .admin-layout {
+    @apply flex min-h-screen;
+  }
+
+  .admin-sidebar {
+    @apply hidden w-64 flex-col border-r border-border bg-card lg:flex;
+  }
+
+  .admin-sidebar__link {
+    @apply flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground;
+  }
+
+  .admin-sidebar__link--active {
+    @apply bg-primary/10 text-primary;
+  }
+
+  .page-container {
+    @apply mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 lg:px-8;
+  }
+
+  .section-container {
+    @apply mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8;
+  }
+}

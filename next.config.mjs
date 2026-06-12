@@ -2,10 +2,14 @@
 const nextConfig = {
   images: {
     remotePatterns: [
-      {
-        protocol: 'https',
-        hostname: '**.amazonaws.com',
-      },
+      // S3 / CloudFront (producción)
+      { protocol: 'https', hostname: '**.amazonaws.com' },
+      // Imágenes demo de productos (loremflickr → fotos CC temáticas)
+      { protocol: 'https', hostname: 'loremflickr.com' },
+      { protocol: 'https', hostname: '**.staticflickr.com' },
+      // Por si más adelante usamos Unsplash/Picsum
+      { protocol: 'https', hostname: 'images.unsplash.com' },
+      { protocol: 'https', hostname: 'picsum.photos' },
     ],
   },
 }

@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { Eye, EyeOff, Loader2 } from 'lucide-react'
+import { Eye, EyeOff } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -39,9 +39,9 @@ export function AccountTabs({
         String(data.get('password')),
       )
       redirectTo(user.role)
+      // No reseteamos loading: el spinner sigue hasta que se navega.
     } catch (err) {
       setError(err instanceof Error ? err.message : 'No se pudo iniciar sesión')
-    } finally {
       setLoading(false)
     }
   }
@@ -60,9 +60,9 @@ export function AccountTabs({
         cuit: (data.get('cuit') as string) || undefined,
       })
       redirectTo(user.role)
+      // No reseteamos loading: el spinner sigue hasta que se navega.
     } catch (err) {
       setError(err instanceof Error ? err.message : 'No se pudo crear la cuenta')
-    } finally {
       setLoading(false)
     }
   }
@@ -124,9 +124,8 @@ export function AccountTabs({
               type="submit"
               size="lg"
               className="w-full rounded-full"
-              disabled={loading}
+              loading={loading}
             >
-              {loading && <Loader2 className="size-4 animate-spin" />}
               Acceder
             </Button>
           </form>
@@ -162,9 +161,8 @@ export function AccountTabs({
               type="submit"
               size="lg"
               className="w-full rounded-full"
-              disabled={loading}
+              loading={loading}
             >
-              {loading && <Loader2 className="size-4 animate-spin" />}
               Crear cuenta mayorista
             </Button>
           </form>

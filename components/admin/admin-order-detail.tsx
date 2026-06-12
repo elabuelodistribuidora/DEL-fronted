@@ -24,7 +24,7 @@ export function AdminOrderDetail({ id }: { id: string }) {
   const [order, setOrder] = useState<Order | null>(null)
   const [loading, setLoading] = useState(true)
   const [trackingCode, setTrackingCode] = useState('')
-  const [updating, setUpdating] = useState(false)
+  const [updatingStatus, setUpdatingStatus] = useState<OrderStatus | null>(null)
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
@@ -37,7 +37,7 @@ export function AdminOrderDetail({ id }: { id: string }) {
 
   const changeStatus = async (status: OrderStatus) => {
     if (!order) return
-    setUpdating(true)
+    setUpdatingStatus(status)
     setError(null)
     try {
       const updated = await ordersService.updateStatus(
@@ -49,7 +49,7 @@ export function AdminOrderDetail({ id }: { id: string }) {
     } catch (err) {
       setError(err instanceof Error ? err.message : 'No se pudo actualizar')
     } finally {
-      setUpdating(false)
+      setUpdatingStatus(null)
     }
   }
 
@@ -135,10 +135,10 @@ export function AdminOrderDetail({ id }: { id: string }) {
                   key={s}
                   variant={s === 'cancelled' ? 'outline' : 'default'}
                   className="rounded-full"
-                  disabled={updating}
+                  loading={updatingStatus === s}
+                  disabled={updatingStatus !== null && updatingStatus !== s}
                   onClick={() => changeStatus(s)}
                 >
-                  {updating && <Loader2 className="size-4 animate-spin" />}
                   Marcar como {ORDER_STATUS_LABELS[s].toLowerCase()}
                 </Button>
               ))}

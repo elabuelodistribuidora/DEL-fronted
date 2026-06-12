@@ -1,11 +1,11 @@
 'use client'
 
 import Link from 'next/link'
-import Image from 'next/image'
 import { Package, Lock, ShoppingCart, Check } from 'lucide-react'
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
+import { ImageLoader } from '@/components/ui/image-loader'
 import type { Product } from '@/types/product'
 import { useAuth } from '@/hooks/useAuth'
 import { useCart } from '@/hooks/useCart'
@@ -40,12 +40,12 @@ export function ProductCard({ product }: { product: Product }) {
         className="relative flex aspect-square items-center justify-center bg-muted"
       >
         {product.imageUrl ? (
-          <Image
+          <ImageLoader
             src={product.imageUrl}
             alt={product.name}
-            width={300}
-            height={300}
-            className="h-full w-full object-cover"
+            fill
+            sizes="(min-width: 1280px) 20vw, (min-width: 640px) 33vw, 50vw"
+            className="object-cover"
           />
         ) : (
           <Package className="size-14 text-muted-foreground/30" />

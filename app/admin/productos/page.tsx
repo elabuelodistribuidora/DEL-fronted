@@ -2,17 +2,28 @@
 
 import { useCallback, useEffect, useState } from 'react'
 import Link from 'next/link'
-import { Plus, Loader2, Search } from 'lucide-react'
+import {
+  Plus,
+  Loader2,
+  Search,
+  ChevronLeft,
+  ChevronRight,
+} from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { productsService } from '@/services/products.service'
 import type { Product } from '@/types/product'
 import { formatPrice } from '@/utils/formatters'
 
+const PAGE_SIZE = 20
+
 export default function AdminProductosPage() {
   const [products, setProducts] = useState<Product[]>([])
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
+  const [page, setPage] = useState(1)
+  const [meta, setMeta] = useState({ total: 0, page: 1, totalPages: 1 })
+  const [busyId, setBusyId] = useState<string | null>(null)
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -20,30 +31,45 @@ export default function AdminProductosPage() {
       const res = await productsService.list({
         search: search.trim() || undefined,
         includeInactive: true,
-        limit: 100,
+        page,
+        limit: PAGE_SIZE,
       })
       setProducts(res.data)
+      setMeta(res.meta)
     } finally {
       setLoading(false)
     }
+  }, [search, page])
+
+  // Al cambiar la búsqueda, volver a la página 1 (con debounce)
+  useEffect(() => {
+    const t = setTimeout(() => setPage(1), 300)
+    return () => clearTimeout(t)
   }, [search])
 
   useEffect(() => {
-    const t = setTimeout(load, 300)
-    return () => clearTimeout(t)
+    load()
   }, [load])
 
   const handleDelete = async (id: string, name: string) => {
     if (!confirm(`¿Desactivar "${name}"? Podés reactivarlo editándolo.`)) return
-    await productsService.remove(id)
-    load()
+    setBusyId(id)
+    try {
+      await productsService.remove(id)
+      await load()
+    } finally {
+      setBusyId(null)
+    }
   }
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="font-heading text-2xl font-bold text-foreground">
-          Productos
+          Productos{' '}
+          <span className="text-base font-normal text-muted-foreground">
+            ({meta.total})
+          </span>
         </h1>
         <Button asChild className="rounded-full">
           <Link href="/admin/productos/nuevo">
@@ -112,8 +138,12 @@ export default function AdminProductosPage() {
                       </Link>
                       <button
                         onClick={() => handleDelete(p.id, p.name)}
-                        className="text-xs text-destructive hover:underline"
+                        disabled={busyId === p.id}
+                        className="inline-flex items-center gap-1 text-xs text-destructive hover:underline disabled:opacity-50"
                       >
+                        {busyId === p.id && (
+                          <Loader2 className="size-3 animate-spin" />
+                        )}
                         Desactivar
                       </button>
                     </div>
@@ -131,6 +161,32 @@ export default function AdminProductosPage() {
           </table>
         )}
       </div>
+
+      {meta.totalPages > 1 && (
+        <div className="flex items-center justify-center gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            disabled={meta.page <= 1}
+            onClick={() => setPage((p) => p - 1)}
+          >
+            <ChevronLeft className="size-4" />
+            Anterior
+          </Button>
+          <span className="px-3 text-sm text-muted-foreground">
+            Página {meta.page} de {meta.totalPages}
+          </span>
+          <Button
+            variant="outline"
+            size="sm"
+            disabled={meta.page >= meta.totalPages}
+            onClick={() => setPage((p) => p + 1)}
+          >
+            Siguiente
+            <ChevronRight className="size-4" />
+          </Button>
+        </div>
+      )}
     </div>
   )
 }

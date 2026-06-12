@@ -310,9 +310,9 @@ export function ProductForm({ id }: { id: string }) {
         <Button
           type="submit"
           className="rounded-full"
-          disabled={saving || !form.categoriaId}
+          loading={saving}
+          disabled={!form.categoriaId}
         >
-          {saving && <Loader2 className="size-4 animate-spin" />}
           Guardar
         </Button>
       </form>

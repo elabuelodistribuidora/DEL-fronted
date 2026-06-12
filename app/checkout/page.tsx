@@ -389,12 +389,9 @@ export default function CheckoutPage() {
               <Button
                 className="mt-2 rounded-full"
                 onClick={handleSubmit}
-                disabled={submitting}
+                loading={submitting}
               >
-                {submitting && <Loader2 className="size-4 animate-spin" />}
-                {payment === 'mercadopago'
-                  ? 'Ir a pagar'
-                  : 'Confirmar pedido'}
+                {payment === 'mercadopago' ? 'Ir a pagar' : 'Confirmar pedido'}
               </Button>
             </div>
           )}

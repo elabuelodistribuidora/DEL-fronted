@@ -1,7 +1,6 @@
 'use client'
 
 import Link from 'next/link'
-import Image from 'next/image'
 import {
   ShoppingCart,
   ArrowRight,
@@ -16,6 +15,7 @@ import { SiteFooter } from '@/components/layout/site-footer'
 import { Button } from '@/components/ui/button'
 import { useCart } from '@/hooks/useCart'
 import { useAuth } from '@/hooks/useAuth'
+import { ImageLoader } from '@/components/ui/image-loader'
 import { formatPrice } from '@/utils/formatters'
 
 export default function CarritoPage() {
@@ -53,14 +53,14 @@ export default function CarritoPage() {
               <div className="space-y-4 lg:col-span-2">
                 {items.map((item) => (
                   <div key={item.id} className="cart-item">
-                    <div className="cart-item__image flex items-center justify-center overflow-hidden">
+                    <div className="cart-item__image relative flex items-center justify-center overflow-hidden">
                       {item.product.imageUrl ? (
-                        <Image
+                        <ImageLoader
                           src={item.product.imageUrl}
                           alt={item.product.name}
-                          width={80}
-                          height={80}
-                          className="h-full w-full object-cover"
+                          fill
+                          sizes="80px"
+                          className="object-cover"
                         />
                       ) : (
                         <Package className="size-8 text-muted-foreground/30" />

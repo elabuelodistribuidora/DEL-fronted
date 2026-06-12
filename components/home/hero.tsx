@@ -2,6 +2,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { ArrowRight, Palette, Sparkles, Star, Brush, Frame, PaintBucket } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { ImageLoader } from '@/components/ui/image-loader'
 
 export function Hero() {
   return (
@@ -89,31 +90,28 @@ export function Hero() {
               </div>
             </figure>
 
-            {/* Tile 2 — placeholder: reemplazar por <Image src="/hero/pinturas.jpg" fill className="object-cover" /> */}
             <CollageTile
               className="col-span-2 row-span-3"
               icon={<PaintBucket className="size-7" />}
               title="Pinturas acrílicas"
               subtitle="Desde $1.200 / pomo"
-              gradient="from-accent/30 to-accent/5"
+              image="https://loremflickr.com/600/700/acrylic,paint?lock=11"
             />
 
-            {/* Tile 3 — placeholder: reemplazar por <Image src="/hero/pinceles.jpg" fill className="object-cover" /> */}
             <CollageTile
               className="col-span-2 row-span-3"
               icon={<Brush className="size-7" />}
               title="Pinceles"
               subtitle="+200 modelos"
-              gradient="from-primary-foreground/15 to-primary-foreground/0"
+              image="https://loremflickr.com/600/700/paintbrush?lock=12"
             />
 
-            {/* Tile 4 — placeholder: reemplazar por <Image src="/hero/lienzos.jpg" fill className="object-cover" /> */}
             <CollageTile
               className="col-span-3 row-span-2"
               icon={<Frame className="size-7" />}
               title="Lienzos y bastidores"
               subtitle="Todas las medidas"
-              gradient="from-primary-foreground/10 to-primary-foreground/0"
+              image="https://loremflickr.com/800/400/canvas,easel?lock=13"
               row
             />
           </div>
@@ -134,14 +132,14 @@ function CollageTile({
   icon,
   title,
   subtitle,
-  gradient,
+  image,
   row = false,
 }: {
   className?: string
   icon: React.ReactNode
   title: string
   subtitle: string
-  gradient: string
+  image: string
   row?: boolean
 }) {
   return (
@@ -150,13 +148,23 @@ function CollageTile({
         row ? 'items-center gap-4 p-4' : 'flex-col justify-end p-4'
       } ${className ?? ''}`}
     >
-      <div className={`pointer-events-none absolute inset-0 bg-gradient-to-br ${gradient}`} />
-      <div className="relative flex size-12 shrink-0 items-center justify-center rounded-xl bg-primary-foreground/10 text-accent ring-1 ring-primary-foreground/15">
+      {/* Foto de fondo */}
+      <ImageLoader
+        src={image}
+        alt={title}
+        fill
+        sizes="(min-width: 1024px) 20vw, 40vw"
+        placeholderClassName="bg-primary/40"
+        className="object-cover transition-transform duration-500 group-hover:scale-105"
+      />
+      {/* Overlay para legibilidad del texto */}
+      <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/75 via-black/30 to-black/10" />
+      <div className="relative flex size-12 shrink-0 items-center justify-center rounded-xl bg-primary-foreground/15 text-accent ring-1 ring-primary-foreground/20 backdrop-blur-sm">
         {icon}
       </div>
       <div className="relative">
-        <p className="text-sm font-semibold text-primary-foreground">{title}</p>
-        <p className="text-xs text-primary-foreground/60">{subtitle}</p>
+        <p className="text-sm font-semibold text-white drop-shadow">{title}</p>
+        <p className="text-xs text-white/80 drop-shadow">{subtitle}</p>
       </div>
     </div>
   )

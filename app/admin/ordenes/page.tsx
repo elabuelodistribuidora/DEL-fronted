@@ -2,7 +2,8 @@
 
 import { useCallback, useEffect, useState } from 'react'
 import Link from 'next/link'
-import { Loader2 } from 'lucide-react'
+import { Loader2, ChevronLeft, ChevronRight } from 'lucide-react'
+import { Button } from '@/components/ui/button'
 import {
   Select,
   SelectContent,
@@ -28,17 +29,27 @@ export default function AdminOrdenesPage() {
   const [orders, setOrders] = useState<Order[]>([])
   const [loading, setLoading] = useState(true)
   const [filter, setFilter] = useState<OrderStatus | 'all'>('all')
+  const [page, setPage] = useState(1)
+  const [meta, setMeta] = useState({ total: 0, page: 1, totalPages: 1 })
 
   const load = useCallback(async () => {
     setLoading(true)
     try {
       const res = await ordersService.listAll(
         filter === 'all' ? undefined : filter,
+        page,
+        20,
       )
       setOrders(res.data)
+      setMeta(res.meta)
     } finally {
       setLoading(false)
     }
+  }, [filter, page])
+
+  // Al cambiar el filtro, volver a la página 1
+  useEffect(() => {
+    setPage(1)
   }, [filter])
 
   useEffect(() => {
@@ -122,6 +133,32 @@ export default function AdminOrdenesPage() {
           </table>
         )}
       </div>
+
+      {meta.totalPages > 1 && (
+        <div className="flex items-center justify-center gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            disabled={meta.page <= 1}
+            onClick={() => setPage((p) => p - 1)}
+          >
+            <ChevronLeft className="size-4" />
+            Anterior
+          </Button>
+          <span className="px-3 text-sm text-muted-foreground">
+            Página {meta.page} de {meta.totalPages}
+          </span>
+          <Button
+            variant="outline"
+            size="sm"
+            disabled={meta.page >= meta.totalPages}
+            onClick={() => setPage((p) => p + 1)}
+          >
+            Siguiente
+            <ChevronRight className="size-4" />
+          </Button>
+        </div>
+      )}
     </div>
   )
 }

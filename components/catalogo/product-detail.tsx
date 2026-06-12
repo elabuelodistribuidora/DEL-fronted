@@ -1,7 +1,6 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import Image from 'next/image'
 import Link from 'next/link'
 import {
   Package,
@@ -15,6 +14,7 @@ import {
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
+import { ImageLoader } from '@/components/ui/image-loader'
 import { productsService } from '@/services/products.service'
 import { useAuth } from '@/hooks/useAuth'
 import { useCart } from '@/hooks/useCart'
@@ -88,14 +88,14 @@ export function ProductDetail({ slug }: { slug: string }) {
 
       <div className="grid gap-10 lg:grid-cols-2">
         {/* Imagen */}
-        <div className="flex aspect-square items-center justify-center overflow-hidden rounded-2xl border border-border bg-muted">
+        <div className="relative flex aspect-square items-center justify-center overflow-hidden rounded-2xl border border-border bg-muted">
           {product.imageUrl ? (
-            <Image
+            <ImageLoader
               src={product.imageUrl}
               alt={product.name}
-              width={600}
-              height={600}
-              className="h-full w-full object-cover"
+              fill
+              sizes="(min-width: 1024px) 40vw, 90vw"
+              className="object-cover"
             />
           ) : (
             <Package className="size-24 text-muted-foreground/30" />

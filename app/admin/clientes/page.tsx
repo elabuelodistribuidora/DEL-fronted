@@ -18,6 +18,7 @@ export default function AdminClientesPage() {
   const [logo, setLogo] = useState('')
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [busyId, setBusyId] = useState<string | null>(null)
 
   const load = () =>
     clientesService
@@ -71,8 +72,13 @@ export default function AdminClientesPage() {
       )
     )
       return
-    await clientesService.remove(c.id)
-    load()
+    setBusyId(c.id)
+    try {
+      await clientesService.remove(c.id)
+      await load()
+    } finally {
+      setBusyId(null)
+    }
   }
 
   const uploadLogo = async (file?: File) => {
@@ -143,10 +149,10 @@ export default function AdminClientesPage() {
           </div>
           <Button
             onClick={save}
-            disabled={saving || !name}
+            loading={saving}
+            disabled={!name}
             className="mt-4 rounded-full"
           >
-            {saving && <Loader2 className="size-4 animate-spin" />}
             Guardar
           </Button>
         </div>
@@ -189,9 +195,15 @@ export default function AdminClientesPage() {
                       </button>
                       <button
                         onClick={() => remove(c)}
-                        className="inline-flex items-center gap-1 text-xs text-destructive hover:underline"
+                        disabled={busyId === c.id}
+                        className="inline-flex items-center gap-1 text-xs text-destructive hover:underline disabled:opacity-50"
                       >
-                        <Trash2 className="size-3" /> Eliminar
+                        {busyId === c.id ? (
+                          <Loader2 className="size-3 animate-spin" />
+                        ) : (
+                          <Trash2 className="size-3" />
+                        )}{' '}
+                        Eliminar
                       </button>
                     </div>
                   </td>

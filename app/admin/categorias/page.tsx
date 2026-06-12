@@ -28,6 +28,8 @@ export default function AdminCategoriasPage() {
   // Estado para borrado con reasignación
   const [deleting, setDeleting] = useState<Categoria | null>(null)
   const [reassignTo, setReassignTo] = useState('')
+  const [busyId, setBusyId] = useState<string | null>(null)
+  const [reassigning, setReassigning] = useState(false)
 
   const load = () =>
     categoriasService
@@ -80,10 +82,15 @@ export default function AdminCategoriasPage() {
     }
   }
 
-  const startDelete = (c: Categoria) => {
+  const startDelete = async (c: Categoria) => {
     if ((c._count?.products ?? 0) === 0) {
-      if (confirm(`¿Eliminar la categoría "${c.name}"?`)) {
-        categoriasService.remove(c.id).then(load)
+      if (!confirm(`¿Eliminar la categoría "${c.name}"?`)) return
+      setBusyId(c.id)
+      try {
+        await categoriasService.remove(c.id)
+        await load()
+      } finally {
+        setBusyId(null)
       }
       return
     }
@@ -94,9 +101,14 @@ export default function AdminCategoriasPage() {
 
   const confirmReassignDelete = async () => {
     if (!deleting || !reassignTo) return
-    await categoriasService.remove(deleting.id, reassignTo)
-    setDeleting(null)
-    load()
+    setReassigning(true)
+    try {
+      await categoriasService.remove(deleting.id, reassignTo)
+      setDeleting(null)
+      await load()
+    } finally {
+      setReassigning(false)
+    }
   }
 
   return (
@@ -153,10 +165,10 @@ export default function AdminCategoriasPage() {
           </div>
           <Button
             onClick={save}
-            disabled={saving || !name}
+            loading={saving}
+            disabled={!name}
             className="mt-4 rounded-full"
           >
-            {saving && <Loader2 className="size-4 animate-spin" />}
             Guardar
           </Button>
         </div>
@@ -200,6 +212,7 @@ export default function AdminCategoriasPage() {
             <Button
               className="rounded-full"
               disabled={!reassignTo}
+              loading={reassigning}
               onClick={confirmReassignDelete}
             >
               Reasignar y eliminar
@@ -245,9 +258,15 @@ export default function AdminCategoriasPage() {
                       </button>
                       <button
                         onClick={() => startDelete(c)}
-                        className="inline-flex items-center gap-1 text-xs text-destructive hover:underline"
+                        disabled={busyId === c.id}
+                        className="inline-flex items-center gap-1 text-xs text-destructive hover:underline disabled:opacity-50"
                       >
-                        <Trash2 className="size-3" /> Eliminar
+                        {busyId === c.id ? (
+                          <Loader2 className="size-3 animate-spin" />
+                        ) : (
+                          <Trash2 className="size-3" />
+                        )}{' '}
+                        Eliminar
                       </button>
                     </div>
                   </td>

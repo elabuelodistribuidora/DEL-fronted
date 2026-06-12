@@ -2,10 +2,10 @@
 
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
-import Image from 'next/image'
 import { ArrowRight, Package, Lock } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
+import { ImageLoader } from '@/components/ui/image-loader'
 import { productsService } from '@/services/products.service'
 import type { Product } from '@/types/product'
 
@@ -17,12 +17,12 @@ function CarouselCard({ product }: { product: Product }) {
     >
       <div className="relative flex aspect-square items-center justify-center bg-muted">
         {product.imageUrl ? (
-          <Image
+          <ImageLoader
             src={product.imageUrl}
             alt={product.name}
-            width={208}
-            height={208}
-            className="h-full w-full object-cover"
+            fill
+            sizes="208px"
+            className="object-cover"
           />
         ) : (
           <Package className="size-10 text-muted-foreground/20" />
@@ -55,6 +55,10 @@ function CarouselCard({ product }: { product: Product }) {
   )
 }
 
+// Mínimo de tarjetas por fila para que el marquee siempre llene el ancho
+// (si hay pocos destacados se repiten para que no queden pegadas a la izquierda).
+const MIN_PER_ROW = 8
+
 function CarouselRow({
   items,
   reverse = false,
@@ -62,14 +66,17 @@ function CarouselRow({
   items: Product[]
   reverse?: boolean
 }) {
-  const doubled = [...items, ...items]
+  if (items.length === 0) return null
+  // Repite los ítems hasta alcanzar el mínimo, luego duplica para el loop.
+  const filled: Product[] = []
+  while (filled.length < MIN_PER_ROW) filled.push(...items)
+  const doubled = [...filled, ...filled]
   return (
     <div className="relative overflow-hidden">
       <div className="pointer-events-none absolute inset-y-0 left-0 z-10 w-16 bg-gradient-to-r from-background to-transparent" />
       <div className="pointer-events-none absolute inset-y-0 right-0 z-10 w-16 bg-gradient-to-l from-background to-transparent" />
       <div
-        className={`flex gap-4 py-2 ${reverse ? 'animate-scroll-reverse' : 'animate-scroll'}`}
-        style={{ width: 'max-content' }}
+        className={`flex w-max gap-4 py-2 ${reverse ? 'animate-scroll-reverse' : 'animate-scroll'}`}
       >
         {doubled.map((product, i) => (
           <CarouselCard key={`${product.id}-${i}`} product={product} />

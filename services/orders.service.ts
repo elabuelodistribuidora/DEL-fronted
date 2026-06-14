@@ -3,7 +3,9 @@ import type { Order, OrderStatus, ShippingAddress } from '@/types/order'
 import type { Paginated } from '@/types/product'
 
 export type CheckoutPayload = {
-  shippingMethod: 'andreani' | 'oca' | 'pickup'
+  // Envío por transporte propio: el método queda en 'delivery' por defecto en el
+  // backend, no se elige carrier en el checkout.
+  shippingMethod?: 'delivery' | 'pickup'
   paymentMethod: 'mercadopago' | 'transfer' | 'cash'
   shippingAddress: ShippingAddress
   notes?: string
@@ -18,17 +20,6 @@ export type CheckoutResponse = {
   }
 }
 
-export type TrackingResponse = {
-  method: string
-  trackingCode?: string | null
-  events: Array<{
-    date: string
-    status: string
-    location?: string
-    description: string
-  }>
-}
-
 export const ordersService = {
   checkout: (payload: CheckoutPayload) =>
     api.post<CheckoutResponse>('/orders/checkout', payload),
@@ -37,9 +28,6 @@ export const ordersService = {
     api.get<Paginated<Order>>(`/orders?page=${page}&limit=${limit}`),
 
   getOne: (id: string) => api.get<Order>(`/orders/${id}`),
-
-  getTracking: (id: string) =>
-    api.get<TrackingResponse>(`/orders/${id}/tracking`),
 
   cancel: (id: string) => api.patch<Order>(`/orders/${id}/cancel`, {}),
 

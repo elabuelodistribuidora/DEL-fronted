@@ -1,28 +1,22 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import {
-  ArrowLeft,
-  MapPin,
-  Truck,
-  CreditCard,
-  Loader2,
-} from 'lucide-react'
+import { ArrowLeft, MapPin, CreditCard, Truck } from 'lucide-react'
 import { SiteHeader } from '@/components/layout/site-header'
 import { SiteFooter } from '@/components/layout/site-footer'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { useCart } from '@/hooks/useCart'
-import { shippingService, type ShippingQuoteResult } from '@/services/shipping.service'
 import { cartService } from '@/services/cart.service'
 import { ordersService } from '@/services/orders.service'
+import { usersService } from '@/services/users.service'
 import { formatPrice } from '@/utils/formatters'
 import type { ShippingAddress } from '@/types/order'
 
-type Step = 'shipping' | 'delivery' | 'payment'
+type Step = 'shipping' | 'payment'
 type PaymentMethod = 'mercadopago' | 'transfer' | 'cash'
 
 const emptyAddress: ShippingAddress = {
@@ -42,13 +36,33 @@ export default function CheckoutPage() {
 
   const [step, setStep] = useState<Step>('shipping')
   const [address, setAddress] = useState<ShippingAddress>(emptyAddress)
-  const [quotes, setQuotes] = useState<ShippingQuoteResult[]>([])
-  const [quoting, setQuoting] = useState(false)
-  const [selectedShipping, setSelectedShipping] =
-    useState<ShippingQuoteResult | null>(null)
   const [payment, setPayment] = useState<PaymentMethod>('mercadopago')
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
+
+  // Prefill con la dirección del negocio guardada en el registro
+  useEffect(() => {
+    usersService
+      .me()
+      .then((me) => {
+        const a = (me.addresses as ShippingAddress[] | undefined)?.[0] as
+          | (ShippingAddress & { isDefault?: boolean })
+          | undefined
+        if (a) {
+          setAddress({
+            fullName: a.fullName || me.businessName || me.name || '',
+            street: a.street ?? '',
+            number: a.number ?? '',
+            floor: a.floor ?? '',
+            city: a.city ?? '',
+            province: a.province ?? '',
+            postalCode: a.postalCode ?? '',
+            phone: a.phone || me.phone || '',
+          })
+        }
+      })
+      .catch(() => {})
+  }, [])
 
   if (isEmpty) {
     return (
@@ -70,7 +84,6 @@ export default function CheckoutPage() {
 
   const steps: { id: Step; label: string; icon: React.ReactNode }[] = [
     { id: 'shipping', label: 'Envío', icon: <MapPin className="size-4" /> },
-    { id: 'delivery', label: 'Entrega', icon: <Truck className="size-4" /> },
     { id: 'payment', label: 'Pago', icon: <CreditCard className="size-4" /> },
   ]
 
@@ -86,32 +99,10 @@ export default function CheckoutPage() {
     address.postalCode &&
     address.phone
 
-  const goToDelivery = async () => {
-    setError(null)
-    setStep('delivery')
-    setQuoting(true)
-    try {
-      const itemCount = items.reduce((acc, i) => acc + i.quantity, 0)
-      const weight = Math.max(1, itemCount * 0.5)
-      const result = await shippingService.quote(address.postalCode, weight)
-      setQuotes(result)
-      setSelectedShipping(result[0] ?? null)
-    } catch {
-      setError('No se pudo cotizar el envío. Reintentá.')
-    } finally {
-      setQuoting(false)
-    }
-  }
-
-  const shippingCost = selectedShipping?.cost ?? 0
-  const grandTotal = total + shippingCost
-
   const handleSubmit = async () => {
-    if (!selectedShipping) return
     setSubmitting(true)
     setError(null)
     try {
-      // 1. Sincroniza el carrito local con el backend
       await cartService.replace(
         items.map((i) => ({
           productId: i.product.id,
@@ -119,15 +110,11 @@ export default function CheckoutPage() {
           variantId: i.variantId,
         })),
       )
-      // 2. Crea la orden
       const { order, payment: pay } = await ordersService.checkout({
-        shippingMethod: selectedShipping.method,
         paymentMethod: payment,
         shippingAddress: address,
       })
-      // 3. Limpia el carrito local
       clearCart()
-      // 4. Redirige a MercadoPago o a la confirmación
       if (payment === 'mercadopago' && pay.initPoint) {
         window.location.href = pay.initPoint
       } else {
@@ -189,15 +176,20 @@ export default function CheckoutPage() {
           {/* Step: Envío */}
           {step === 'shipping' && (
             <div className="form-section space-y-4">
-              <h2 className="form-section__title">Datos de envío</h2>
+              <h2 className="form-section__title">Dirección de entrega</h2>
+              <p className="flex items-center gap-2 rounded-lg bg-muted px-3 py-2 text-sm text-muted-foreground">
+                <Truck className="size-4 shrink-0" />
+                Enviamos con transporte propio por encomienda. El envío se
+                coordina luego de confirmar el pedido.
+              </p>
               <div className="form-section__grid">
                 <div className="space-y-2">
-                  <Label htmlFor="name">Nombre completo</Label>
+                  <Label htmlFor="name">Nombre / Comercio</Label>
                   <Input
                     id="name"
                     value={address.fullName}
                     onChange={(e) => setField('fullName', e.target.value)}
-                    placeholder="Juan García"
+                    placeholder="Librería del Centro"
                   />
                 </div>
                 <div className="space-y-2">
@@ -267,60 +259,6 @@ export default function CheckoutPage() {
               <Button
                 className="mt-2 rounded-full"
                 disabled={!shippingValid}
-                onClick={goToDelivery}
-              >
-                Continuar
-              </Button>
-            </div>
-          )}
-
-          {/* Step: Entrega */}
-          {step === 'delivery' && (
-            <div className="form-section space-y-4">
-              <h2 className="form-section__title">Método de entrega</h2>
-              {quoting ? (
-                <div className="flex items-center gap-2 py-8 text-sm text-muted-foreground">
-                  <Loader2 className="size-4 animate-spin" />
-                  Cotizando envío…
-                </div>
-              ) : (
-                <div className="space-y-3">
-                  {quotes.map((q) => (
-                    <label
-                      key={q.method}
-                      className={`flex cursor-pointer items-center gap-4 rounded-xl border p-4 transition-colors ${
-                        selectedShipping?.method === q.method
-                          ? 'border-primary bg-primary/5'
-                          : 'border-border hover:border-primary/30'
-                      }`}
-                    >
-                      <input
-                        type="radio"
-                        name="delivery"
-                        value={q.method}
-                        checked={selectedShipping?.method === q.method}
-                        onChange={() => setSelectedShipping(q)}
-                        className="accent-primary"
-                      />
-                      <div className="flex-1">
-                        <p className="font-medium text-foreground">{q.label}</p>
-                        <p className="text-sm text-muted-foreground">
-                          {q.estimatedDays === 0
-                            ? 'Inmediato'
-                            : `${q.estimatedDays} días hábiles`}
-                          {q.estimated ? ' · tarifa estimada' : ''}
-                        </p>
-                      </div>
-                      <span className="text-sm font-medium text-foreground">
-                        {q.cost === 0 ? 'Gratis' : formatPrice(q.cost)}
-                      </span>
-                    </label>
-                  ))}
-                </div>
-              )}
-              <Button
-                className="mt-2 rounded-full"
-                disabled={!selectedShipping}
                 onClick={() => setStep('payment')}
               >
                 Continuar
@@ -336,7 +274,7 @@ export default function CheckoutPage() {
                 {[
                   { id: 'mercadopago', label: 'MercadoPago', desc: 'Tarjetas, QR y más' },
                   { id: 'transfer', label: 'Transferencia bancaria', desc: 'Confirmación en 24 hs' },
-                  { id: 'cash', label: 'Efectivo', desc: 'Solo para retiro en local' },
+                  { id: 'cash', label: 'Efectivo', desc: 'Al coordinar la entrega' },
                 ].map((m) => (
                   <label
                     key={m.id}
@@ -370,17 +308,15 @@ export default function CheckoutPage() {
                     <span className="font-medium">{formatPrice(total)}</span>
                   </div>
                   <div className="flex justify-between">
+                    <span className="text-muted-foreground">Envío</span>
                     <span className="text-muted-foreground">
-                      Envío ({selectedShipping?.label})
-                    </span>
-                    <span className="font-medium">
-                      {shippingCost === 0 ? 'Gratis' : formatPrice(shippingCost)}
+                      Encomienda propia · a coordinar
                     </span>
                   </div>
                   <div className="flex justify-between border-t border-border pt-2">
                     <span className="font-heading font-semibold">Total</span>
                     <span className="font-heading text-lg font-bold">
-                      {formatPrice(grandTotal)}
+                      {formatPrice(total)}
                     </span>
                   </div>
                 </div>

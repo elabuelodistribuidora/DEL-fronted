@@ -6,18 +6,16 @@ import {
   ArrowLeft,
   Package,
   MapPin,
-  Clock,
   Loader2,
   XCircle,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { ordersService, type TrackingResponse } from '@/services/orders.service'
+import { ordersService } from '@/services/orders.service'
 import { ORDER_STATUS_LABELS, type Order } from '@/types/order'
 import { formatPrice, formatDateTime } from '@/utils/formatters'
 
 export function OrderDetail({ id }: { id: string }) {
   const [order, setOrder] = useState<Order | null>(null)
-  const [tracking, setTracking] = useState<TrackingResponse | null>(null)
   const [loading, setLoading] = useState(true)
   const [cancelling, setCancelling] = useState(false)
 
@@ -27,10 +25,6 @@ export function OrderDetail({ id }: { id: string }) {
       .then(setOrder)
       .catch(() => setOrder(null))
       .finally(() => setLoading(false))
-    ordersService
-      .getTracking(id)
-      .then(setTracking)
-      .catch(() => setTracking(null))
   }, [id])
 
   const handleCancel = async () => {
@@ -139,50 +133,6 @@ export function OrderDetail({ id }: { id: string }) {
           </div>
         </div>
       </div>
-
-      {/* Tracking */}
-      {tracking && tracking.events.length > 0 && (
-        <div className="mt-4 rounded-xl border border-border bg-card p-6">
-          <h2 className="font-heading text-base font-semibold text-foreground">
-            Seguimiento del envío
-          </h2>
-          {tracking.trackingCode && (
-            <p className="mt-1 text-sm text-muted-foreground">
-              Código: <span className="font-mono">{tracking.trackingCode}</span>
-            </p>
-          )}
-          <div className="mt-5 space-y-6">
-            {tracking.events.map((event, i) => (
-              <div key={i} className="flex gap-4">
-                <div className="flex flex-col items-center">
-                  <div
-                    className={`flex size-9 items-center justify-center rounded-full ${
-                      i === 0
-                        ? 'bg-primary text-primary-foreground'
-                        : 'bg-muted text-muted-foreground'
-                    }`}
-                  >
-                    <Package className="size-4" />
-                  </div>
-                  {i < tracking.events.length - 1 && (
-                    <div className="mt-1 h-full w-px bg-border" />
-                  )}
-                </div>
-                <div className="pb-2">
-                  <p className="font-medium text-foreground">{event.status}</p>
-                  <p className="text-sm text-muted-foreground">
-                    {event.description}
-                  </p>
-                  <p className="mt-1 flex items-center gap-1 text-xs text-muted-foreground">
-                    <Clock className="size-3" />
-                    {formatDateTime(event.date)}
-                  </p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
 
       {/* Dirección */}
       <div className="mt-4 rounded-xl border border-border bg-card p-6">

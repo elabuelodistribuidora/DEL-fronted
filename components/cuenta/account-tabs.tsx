@@ -1,11 +1,13 @@
 'use client'
 
 import { useState } from 'react'
+import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Eye, EyeOff } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { RegisterWizard } from '@/components/cuenta/register-wizard'
 import { cn } from '@/lib/utils'
 import { useAuth } from '@/hooks/useAuth'
 
@@ -18,7 +20,7 @@ export function AccountTabs({
   const [showPassword, setShowPassword] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const { login, register } = useAuth()
+  const { login } = useAuth()
   const router = useRouter()
   const searchParams = useSearchParams()
 
@@ -46,29 +48,13 @@ export function AccountTabs({
     }
   }
 
-  const handleRegister = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault()
-    setError(null)
-    setLoading(true)
-    const data = new FormData(e.currentTarget)
-    try {
-      const user = await register({
-        name: String(data.get('name')),
-        email: String(data.get('email')),
-        password: String(data.get('password')),
-        businessName: (data.get('businessName') as string) || undefined,
-        cuit: (data.get('cuit') as string) || undefined,
-      })
-      redirectTo(user.role)
-      // No reseteamos loading: el spinner sigue hasta que se navega.
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'No se pudo crear la cuenta')
-      setLoading(false)
-    }
-  }
-
   return (
-    <div className="mx-auto w-full max-w-md">
+    <div
+      className={cn(
+        'mx-auto w-full transition-all',
+        tab === 'register' ? 'max-w-xl' : 'max-w-md',
+      )}
+    >
       <div className="grid grid-cols-2 gap-1 rounded-full bg-muted p-1">
         <TabButton active={tab === 'login'} onClick={() => setTab('login')}>
           Acceder
@@ -81,9 +67,15 @@ export function AccountTabs({
         </TabButton>
       </div>
 
-      {error && (
+      {error && tab === 'login' && (
         <p className="mt-4 rounded-lg bg-destructive/10 px-4 py-3 text-sm text-destructive">
           {error}
+        </p>
+      )}
+
+      {tab === 'login' && searchParams.get('reset') === 'ok' && (
+        <p className="mt-4 rounded-lg bg-green-50 px-4 py-3 text-sm text-green-700">
+          ¡Listo! Tu contraseña se actualizó. Iniciá sesión con la nueva.
         </p>
       )}
 
@@ -119,6 +111,14 @@ export function AccountTabs({
                   )}
                 </button>
               </div>
+              <div className="text-right">
+                <Link
+                  href="/recuperar"
+                  className="text-xs font-medium text-primary hover:underline"
+                >
+                  ¿Olvidaste tu contraseña?
+                </Link>
+              </div>
             </div>
             <Button
               type="submit"
@@ -130,42 +130,7 @@ export function AccountTabs({
             </Button>
           </form>
         ) : (
-          <form className="space-y-5" onSubmit={handleRegister}>
-            <div className="space-y-2">
-              <Label htmlFor="reg-name">Nombre</Label>
-              <Input id="reg-name" name="name" required />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="reg-business">Nombre del comercio</Label>
-              <Input id="reg-business" name="businessName" />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="reg-cuit">CUIT / CUIL</Label>
-              <Input id="reg-cuit" name="cuit" placeholder="20123456789" />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="reg-email">Correo electrónico</Label>
-              <Input id="reg-email" name="email" type="email" required />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="reg-pass">Contraseña</Label>
-              <Input
-                id="reg-pass"
-                name="password"
-                type="password"
-                required
-                placeholder="Mínimo 8 caracteres, una letra y un número"
-              />
-            </div>
-            <Button
-              type="submit"
-              size="lg"
-              className="w-full rounded-full"
-              loading={loading}
-            >
-              Crear cuenta mayorista
-            </Button>
-          </form>
+          <RegisterWizard />
         )}
       </div>
     </div>

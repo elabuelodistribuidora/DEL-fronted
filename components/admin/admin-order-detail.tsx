@@ -121,11 +121,11 @@ export function AdminOrderDetail({ id }: { id: string }) {
           <div className="mt-4 space-y-4">
             {nextStates.includes('shipped') && (
               <div className="max-w-xs space-y-2">
-                <Label>Código de tracking (al despachar)</Label>
+                <Label>Remito / referencia (opcional)</Label>
                 <Input
                   value={trackingCode}
                   onChange={(e) => setTrackingCode(e.target.value)}
-                  placeholder="AND123456789"
+                  placeholder="N° de remito o despacho"
                 />
               </div>
             )}
@@ -205,7 +205,7 @@ export function AdminOrderDetail({ id }: { id: string }) {
         </div>
         {order.trackingCode && (
           <p className="mt-2 text-sm text-muted-foreground">
-            Tracking: <span className="font-mono">{order.trackingCode}</span>
+            Remito: <span className="font-mono">{order.trackingCode}</span>
           </p>
         )}
       </div>

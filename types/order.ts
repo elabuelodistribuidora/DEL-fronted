@@ -47,7 +47,7 @@ export type Order = {
   status: OrderStatus
   items: OrderItem[]
   shippingAddress: ShippingAddress
-  shippingMethod: 'andreani' | 'oca' | 'pickup'
+  shippingMethod: 'delivery' | 'pickup'
   shippingCost: number
   subtotal: number
   total: number

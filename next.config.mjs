@@ -3,6 +3,8 @@ const nextConfig = {
   images: {
     remotePatterns: [
       // S3 / CloudFront (producción)
+      { protocol: 'https', hostname: 'cdn.distribuidoraelabuelo.com' },
+      { protocol: 'https', hostname: '**.cloudfront.net' },
       { protocol: 'https', hostname: '**.amazonaws.com' },
       // Imágenes demo de productos (loremflickr → fotos CC temáticas)
       { protocol: 'https', hostname: 'loremflickr.com' },

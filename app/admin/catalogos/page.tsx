@@ -86,7 +86,9 @@ export default function AdminCatalogosPage() {
     setUploadingPdf(true)
     setError(null)
     try {
-      const { key } = await uploadService.uploadFile(file, 'catalogos')
+      // Carpeta aparte: CloudFront NO sirve 'catalogos-pdf/', así el PDF queda
+      // privado y solo accesible vía la URL prefirmada que da el backend.
+      const { key } = await uploadService.uploadFile(file, 'catalogos-pdf')
       setPdfKey(key)
       setPdfName(file.name)
     } catch {

@@ -209,7 +209,7 @@ export default function AdminReportesPage() {
                   </div>
                   <div className="h-2 overflow-hidden rounded-full bg-muted">
                     <div
-                      className="h-full rounded-full bg-accent"
+                      className="h-full rounded-full bg-primary"
                       style={{ width: `${(t.unitsSold / maxUnits) * 100}%` }}
                     />
                   </div>

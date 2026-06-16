@@ -13,6 +13,7 @@ import {
 import { Logo } from '@/components/layout/logo'
 import { AdminGuard } from '@/components/admin/admin-guard'
 import { AdminLogout } from '@/components/admin/admin-logout'
+import { AdminMobileNav } from '@/components/admin/admin-mobile-nav'
 
 const navItems = [
   { href: '/admin', label: 'Dashboard', icon: LayoutDashboard },
@@ -55,6 +56,7 @@ export default function AdminLayout({
         </aside>
         {/* Main content offset by sidebar width */}
         <div className="flex flex-1 flex-col lg:pl-64">
+          <AdminMobileNav />
           <main className="flex-1 p-6 lg:p-8">{children}</main>
         </div>
       </div>

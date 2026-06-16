@@ -65,7 +65,7 @@
 
   /* Admin table */
   .data-table {
-    @apply w-full text-sm;
+    @apply w-full min-w-[44rem] text-sm;
   }
 
   .data-table th {

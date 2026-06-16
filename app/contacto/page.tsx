@@ -50,8 +50,9 @@ export default function ContactoPage() {
               <h2 className="font-heading text-xl font-bold text-foreground">Datos de contacto</h2>
               <div className="space-y-4">
                 {[
-                  { icon: Phone, label: 'Teléfono', value: '+54 341 372-2629', href: 'tel:+543413722629' },
-                  { icon: Mail, label: 'Email', value: 'ventas@distribuidora.com.ar', href: 'mailto:ventas@distribuidora.com.ar' },
+                  { icon: Phone, label: 'Teléfono', value: '+54 9 11 4166-3289', href: 'tel:+5491141663289' },
+                  { icon: Phone, label: 'Teléfono (alt.)', value: '+54 9 11 3198-4895', href: 'tel:+5491131984895' },
+                  { icon: Mail, label: 'Email', value: 'elabuelodistribuidora@gmail.com', href: 'mailto:elabuelodistribuidora@gmail.com' },
                   { icon: Clock, label: 'Horarios', value: 'Lun - Vie / 9:00 - 18:00', href: undefined },
                 ].map(({ icon: Icon, label, value, href }) => (
                   <div key={label} className="flex items-center gap-4 rounded-xl border border-border bg-card p-4">

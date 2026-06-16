@@ -17,7 +17,7 @@ export const metadata: Metadata = {
   title: 'Distribuidora de Arte | Insumos mayoristas',
   description:
     'Distribuidora mayorista de insumos de arte: pinturas, pinceles, lienzos y más. Precios competitivos y entrega a tu local.',
-  icons: { icon: '/icon.svg' },
+  icons: { icon: '/favicon.ico', shortcut: '/favicon.ico', apple: '/apple-icon.png' },
 }
 
 export default function RootLayout({

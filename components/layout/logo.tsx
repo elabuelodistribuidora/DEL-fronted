@@ -10,7 +10,7 @@ export function Logo({ variant = 'dark' }: Props) {
     <Link href="/" className="flex items-center gap-2.5 shrink-0">
       <div className="size-8 overflow-hidden rounded-md">
         <Image
-          src="/logo-icon.png"
+          src="/logo-abuelo.png"
           alt="El Abuelo"
           width={32}
           height={32}

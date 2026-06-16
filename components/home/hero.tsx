@@ -29,9 +29,9 @@ export function Hero() {
             Distribuidora mayorista de arte
           </span>
           <h1 className="text-balance text-4xl font-extrabold leading-[1.05] tracking-tight sm:text-5xl lg:text-6xl">
-            Todo para crear,{' '}
+            Todo el arte{' '}
             <span className="relative inline-block text-accent">
-              en un solo lugar
+              en una sola marca
               <svg className="absolute -bottom-1 left-0 w-full" height="6" viewBox="0 0 200 6" preserveAspectRatio="none" aria-hidden="true">
                 <path d="M0 5 Q50 0 100 4 Q150 8 200 3" stroke="currentColor" strokeWidth="2" fill="none" opacity="0.5" />
               </svg>

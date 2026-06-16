@@ -99,7 +99,7 @@ export function SiteHeader() {
               <Link href="/carrito" aria-label="Carrito">
                 <ShoppingCart className="size-5" />
                 {itemCount > 0 && (
-                  <span className="absolute -right-0.5 -top-0.5 flex size-4 items-center justify-center rounded-full bg-accent text-[0.6rem] font-bold text-accent-foreground">
+                  <span className="absolute -right-0.5 -top-0.5 flex size-4 items-center justify-center rounded-full bg-primary text-[0.6rem] font-bold text-primary-foreground">
                     {itemCount}
                   </span>
                 )}

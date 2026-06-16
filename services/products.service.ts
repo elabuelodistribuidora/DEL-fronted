@@ -31,11 +31,17 @@ export type ProductInput = {
   marcaId?: string | null
 }
 
+export type ImportRowError = { row: number; code?: string; message: string }
+
 export type ImportResult = {
+  applied: boolean
   totalRows: number
   created: number
   updated: number
+  unchanged: number
   skipped: number
+  errorCount: number
+  errors: ImportRowError[]
   marcasCreadas: string[]
   categoriasCreadas: string[]
 }

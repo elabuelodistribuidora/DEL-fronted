@@ -144,17 +144,42 @@ export default function AdminProductosPage() {
           {importError}
         </p>
       )}
-      {importResult && (
-        <div className="rounded-lg bg-green-50 px-4 py-3 text-sm text-green-800">
-          Importación completa: <strong>{importResult.created}</strong> creados,{' '}
-          <strong>{importResult.updated}</strong> actualizados
-          {importResult.marcasCreadas.length > 0 &&
-            `, ${importResult.marcasCreadas.length} marcas nuevas`}
-          {importResult.categoriasCreadas.length > 0 &&
-            `, ${importResult.categoriasCreadas.length} categorías nuevas`}
-          .
-        </div>
-      )}
+      {importResult &&
+        (importResult.applied ? (
+          <div className="rounded-lg bg-green-50 px-4 py-3 text-sm text-green-800">
+            ✅ Importación aplicada: <strong>{importResult.created}</strong>{' '}
+            creados, <strong>{importResult.updated}</strong> actualizados
+            {importResult.unchanged > 0 &&
+              `, ${importResult.unchanged} sin cambios`}
+            {importResult.skipped > 0 &&
+              `, ${importResult.skipped} filas vacías omitidas`}
+            {importResult.marcasCreadas.length > 0 &&
+              `, ${importResult.marcasCreadas.length} marcas nuevas`}
+            {importResult.categoriasCreadas.length > 0 &&
+              `, ${importResult.categoriasCreadas.length} categorías nuevas`}
+            .
+          </div>
+        ) : (
+          <div className="space-y-2 rounded-lg bg-destructive/10 px-4 py-3 text-sm text-destructive">
+            <p className="font-medium">
+              ⚠️ No se importó nada. Hay {importResult.errorCount} fila(s) con
+              errores. Corregí el Excel y volvé a subirlo.
+            </p>
+            <ul className="max-h-56 space-y-1 overflow-y-auto rounded-md bg-background/60 p-3 text-xs">
+              {importResult.errors.map((e, i) => (
+                <li key={i}>
+                  Fila {e.row}
+                  {e.code ? ` (cód. ${e.code})` : ''}: {e.message}
+                </li>
+              ))}
+              {importResult.errorCount > importResult.errors.length && (
+                <li className="opacity-70">
+                  …y {importResult.errorCount - importResult.errors.length} más.
+                </li>
+              )}
+            </ul>
+          </div>
+        ))}
 
       <div className="grid gap-3 sm:grid-cols-3">
         <div className="relative">

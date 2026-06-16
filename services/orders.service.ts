@@ -1,23 +1,17 @@
 import { api } from '@/utils/api'
+import { getAuthToken } from '@/store/authStore'
 import type { Order, OrderStatus, ShippingAddress } from '@/types/order'
 import type { Paginated } from '@/types/product'
 
+const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3001'
+
 export type CheckoutPayload = {
-  // Envío por transporte propio: el método queda en 'delivery' por defecto en el
-  // backend, no se elige carrier en el checkout.
-  shippingMethod?: 'delivery' | 'pickup'
-  paymentMethod: 'mercadopago' | 'transfer' | 'cash'
   shippingAddress: ShippingAddress
   notes?: string
 }
 
 export type CheckoutResponse = {
   order: Order
-  payment: {
-    configured: boolean
-    preferenceId?: string | null
-    initPoint?: string | null
-  }
 }
 
 export const ordersService = {
@@ -31,12 +25,29 @@ export const ordersService = {
 
   cancel: (id: string) => api.patch<Order>(`/orders/${id}/cancel`, {}),
 
+  /** Descarga el PDF de la orden y dispara la descarga en el navegador. */
+  async downloadPdf(id: string, number?: number) {
+    const res = await fetch(`${API_BASE}/orders/${id}/pdf`, {
+      headers: { Authorization: `Bearer ${getAuthToken() ?? ''}` },
+    })
+    if (!res.ok) throw new Error('No se pudo descargar el PDF')
+    const blob = await res.blob()
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `orden-${number ?? id}.pdf`
+    document.body.appendChild(a)
+    a.click()
+    a.remove()
+    URL.revokeObjectURL(url)
+  },
+
   // ── Admin ──
   listAll: (status?: OrderStatus, page = 1, limit = 20) =>
     api.get<Paginated<Order>>(
       `/orders/admin/all?page=${page}&limit=${limit}${status ? `&status=${status}` : ''}`,
     ),
 
-  updateStatus: (id: string, status: OrderStatus, trackingCode?: string) =>
-    api.patch<Order>(`/orders/${id}/status`, { status, trackingCode }),
+  updateStatus: (id: string, status: OrderStatus) =>
+    api.patch<Order>(`/orders/${id}/status`, { status }),
 }

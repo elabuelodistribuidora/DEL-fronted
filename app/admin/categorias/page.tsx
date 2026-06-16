@@ -1,7 +1,16 @@
 'use client'
 
-import { useEffect, useState } from 'react'
-import { Plus, Loader2, Trash2, Pencil, X } from 'lucide-react'
+import { useEffect, useMemo, useState } from 'react'
+import {
+  Plus,
+  Loader2,
+  Trash2,
+  Pencil,
+  X,
+  Search,
+  ChevronLeft,
+  ChevronRight,
+} from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -30,6 +39,24 @@ export default function AdminCategoriasPage() {
   const [reassignTo, setReassignTo] = useState('')
   const [busyId, setBusyId] = useState<string | null>(null)
   const [reassigning, setReassigning] = useState(false)
+
+  // Búsqueda + paginación (client-side, la lista viene completa)
+  const [search, setSearch] = useState('')
+  const [page, setPage] = useState(1)
+  const PAGE_SIZE = 20
+
+  const filtered = useMemo(() => {
+    const q = search.toLowerCase().trim()
+    return q
+      ? categorias.filter((c) => c.name.toLowerCase().includes(q))
+      : categorias
+  }, [categorias, search])
+  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE))
+  const pageItems = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE)
+
+  useEffect(() => {
+    setPage(1)
+  }, [search])
 
   const load = () =>
     categoriasService
@@ -221,6 +248,16 @@ export default function AdminCategoriasPage() {
         </div>
       )}
 
+      <div className="relative max-w-sm">
+        <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+        <Input
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          placeholder="Buscar categoría..."
+          className="pl-9"
+        />
+      </div>
+
       <div className="overflow-hidden rounded-xl border border-border bg-card">
         {loading ? (
           <div className="flex justify-center py-16">
@@ -237,7 +274,7 @@ export default function AdminCategoriasPage() {
               </tr>
             </thead>
             <tbody>
-              {categorias.map((c) => (
+              {pageItems.map((c) => (
                 <tr key={c.id}>
                   <td className="font-medium">{c.name}</td>
                   <td>{c._count?.products ?? 0}</td>
@@ -272,7 +309,7 @@ export default function AdminCategoriasPage() {
                   </td>
                 </tr>
               ))}
-              {categorias.length === 0 && (
+              {pageItems.length === 0 && (
                 <tr>
                   <td colSpan={4} className="py-8 text-center text-muted-foreground">
                     No hay categorías.
@@ -283,6 +320,32 @@ export default function AdminCategoriasPage() {
           </table>
         )}
       </div>
+
+      {totalPages > 1 && (
+        <div className="flex items-center justify-center gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            disabled={page <= 1}
+            onClick={() => setPage((p) => p - 1)}
+          >
+            <ChevronLeft className="size-4" />
+            Anterior
+          </Button>
+          <span className="px-3 text-sm text-muted-foreground">
+            Página {page} de {totalPages}
+          </span>
+          <Button
+            variant="outline"
+            size="sm"
+            disabled={page >= totalPages}
+            onClick={() => setPage((p) => p + 1)}
+          >
+            Siguiente
+            <ChevronRight className="size-4" />
+          </Button>
+        </div>
+      )}
     </div>
   )
 }

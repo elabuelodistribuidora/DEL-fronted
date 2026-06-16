@@ -1,6 +1,5 @@
 export type OrderStatus =
   | 'pending'
-  | 'paid'
   | 'processing'
   | 'shipped'
   | 'delivered'
@@ -21,23 +20,12 @@ export type ShippingAddress = {
 export type OrderItem = {
   id: string
   productId: string
-  variantId?: string | null
+  code?: string | null
   name: string
-  brand: string
-  unit: string
   image?: string | null
-  variantName?: string | null
   unitPrice: number
   quantity: number
   lineTotal?: number
-}
-
-export type OrderPayment = {
-  id: string
-  provider: 'mercadopago' | 'transfer' | 'cash'
-  status: string
-  amount: number
-  externalId?: string | null
 }
 
 export type Order = {
@@ -47,13 +35,7 @@ export type Order = {
   status: OrderStatus
   items: OrderItem[]
   shippingAddress: ShippingAddress
-  shippingMethod: 'delivery' | 'pickup'
-  shippingCost: number
-  subtotal: number
   total: number
-  paymentMethod: 'mercadopago' | 'transfer' | 'cash'
-  payment?: OrderPayment | null
-  trackingCode?: string | null
   notes?: string | null
   createdAt: string
   updatedAt: string
@@ -62,9 +44,8 @@ export type Order = {
 
 export const ORDER_STATUS_LABELS: Record<OrderStatus, string> = {
   pending: 'Pendiente',
-  paid: 'Pagado',
   processing: 'En preparación',
-  shipped: 'Enviado',
+  shipped: 'Despachado',
   delivered: 'Entregado',
   cancelled: 'Cancelado',
 }

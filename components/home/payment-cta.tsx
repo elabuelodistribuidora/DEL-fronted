@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { Banknote, Landmark, ArrowRight } from 'lucide-react'
+import { ClipboardList, Truck, FileText, ArrowRight } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 
 export function PaymentCta() {
@@ -9,26 +9,27 @@ export function PaymentCta() {
         <div className="grid items-center gap-8 rounded-2xl bg-primary p-8 text-primary-foreground sm:p-12 lg:grid-cols-2">
           <div className="space-y-4">
             <h2 className="text-balance text-2xl font-bold sm:text-3xl">
-              Comprá fácil, pagá como prefieras
+              Hacé tu pedido mayorista online
             </h2>
             <p className="max-w-md text-pretty text-primary-foreground/75">
-              Aceptamos transferencia bancaria y efectivo. Registrate como
-              cliente mayorista para ver precios y armar tu pedido.
+              Armá tu pedido desde la web y nosotros coordinamos la facturación
+              y la entrega. Cuenta exclusiva para comercios.
             </p>
             <Button
               asChild
               className="rounded-full bg-accent text-accent-foreground hover:bg-accent/90"
             >
-              <Link href="/cuenta">
-                Crear cuenta
+              <Link href="/contacto">
+                Solicitar cuenta mayorista
                 <ArrowRight className="size-4" />
               </Link>
             </Button>
           </div>
 
-          <div className="grid gap-4 sm:grid-cols-2">
-            <PaymentItem icon={<Landmark className="size-6" />} label="Transferencia" />
-            <PaymentItem icon={<Banknote className="size-6" />} label="Efectivo" />
+          <div className="grid gap-4 sm:grid-cols-3">
+            <CtaItem icon={<ClipboardList className="size-6" />} label="Pedí online" />
+            <CtaItem icon={<FileText className="size-6" />} label="Orden en PDF" />
+            <CtaItem icon={<Truck className="size-6" />} label="Coordinamos envío" />
           </div>
         </div>
       </div>
@@ -36,13 +37,13 @@ export function PaymentCta() {
   )
 }
 
-function PaymentItem({ icon, label }: { icon: React.ReactNode; label: string }) {
+function CtaItem({ icon, label }: { icon: React.ReactNode; label: string }) {
   return (
     <div className="flex flex-col items-center gap-3 rounded-xl bg-primary-foreground/10 p-6 text-center">
       <span className="flex size-12 items-center justify-center rounded-full bg-accent text-accent-foreground">
         {icon}
       </span>
-      <span className="font-semibold">{label}</span>
+      <span className="text-sm font-semibold">{label}</span>
     </div>
   )
 }

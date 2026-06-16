@@ -7,23 +7,17 @@ import type { Product } from '@/types/product'
 
 type AddItemPayload = Pick<
   Product,
-  'id' | 'name' | 'brand' | 'unit' | 'image' | 'imageUrl'
+  'id' | 'name' | 'slug' | 'sku' | 'image' | 'imageUrl' | 'inStock'
 > & {
   price: number
-  variantId?: string
-  variantName?: string
 }
 
 type CartStore = {
   items: CartItem[]
   addItem: (product: AddItemPayload, quantity?: number) => void
-  removeItem: (id: string, variantId?: string) => void
-  updateQuantity: (id: string, quantity: number, variantId?: string) => void
+  removeItem: (id: string) => void
+  updateQuantity: (id: string, quantity: number) => void
   clearCart: () => void
-}
-
-function cartItemKey(id: string, variantId?: string) {
-  return variantId ? `${id}-${variantId}` : id
 }
 
 export const useCartStore = create<CartStore>()(
@@ -33,14 +27,11 @@ export const useCartStore = create<CartStore>()(
 
       addItem: (product, quantity = 1) => {
         set((state) => {
-          const key = cartItemKey(product.id, product.variantId)
-          const existing = state.items.find(
-            (i) => cartItemKey(i.product.id, i.variantId) === key,
-          )
+          const existing = state.items.find((i) => i.product.id === product.id)
           if (existing) {
             return {
               items: state.items.map((i) =>
-                cartItemKey(i.product.id, i.variantId) === key
+                i.product.id === product.id
                   ? { ...i, quantity: i.quantity + quantity }
                   : i,
               ),
@@ -50,53 +41,44 @@ export const useCartStore = create<CartStore>()(
             items: [
               ...state.items,
               {
-                id: key,
+                id: product.id,
                 product: {
                   id: product.id,
                   name: product.name,
-                  brand: product.brand,
-                  unit: product.unit,
+                  slug: product.slug,
+                  sku: product.sku,
                   image: product.image,
                   imageUrl: product.imageUrl,
+                  inStock: product.inStock,
                 },
                 price: product.price,
                 quantity,
-                variantId: product.variantId,
-                variantName: product.variantName,
               },
             ],
           }
         })
       },
 
-      removeItem: (id, variantId) => {
-        const key = cartItemKey(id, variantId)
+      removeItem: (id) => {
         set((state) => ({
-          items: state.items.filter(
-            (i) => cartItemKey(i.product.id, i.variantId) !== key,
-          ),
+          items: state.items.filter((i) => i.product.id !== id),
         }))
       },
 
-      updateQuantity: (id, quantity, variantId) => {
-        const key = cartItemKey(id, variantId)
+      updateQuantity: (id, quantity) => {
         if (quantity <= 0) {
-          get().removeItem(id, variantId)
+          get().removeItem(id)
           return
         }
         set((state) => ({
           items: state.items.map((i) =>
-            cartItemKey(i.product.id, i.variantId) === key
-              ? { ...i, quantity }
-              : i,
+            i.product.id === id ? { ...i, quantity } : i,
           ),
         }))
       },
 
       clearCart: () => set({ items: [] }),
     }),
-    {
-      name: 'cart-storage',
-    },
+    { name: 'cart-storage' },
   ),
 )

@@ -27,9 +27,11 @@ function CarouselCard({ product }: { product: Product }) {
         ) : (
           <Package className="size-10 text-muted-foreground/20" />
         )}
-        <Badge className="absolute left-2.5 top-2.5 bg-background/90 text-foreground shadow-sm hover:bg-background/90 text-[11px]">
-          {product.brand}
-        </Badge>
+        {product.marca && (
+          <Badge className="absolute left-2.5 top-2.5 bg-background/90 text-foreground shadow-sm hover:bg-background/90 text-[11px]">
+            {product.marca.name}
+          </Badge>
+        )}
       </div>
       <div className="flex flex-1 flex-col gap-2 p-3">
         <div className="flex-1 space-y-0.5">
@@ -39,7 +41,6 @@ function CarouselCard({ product }: { product: Product }) {
           <h3 className="text-pretty text-xs font-semibold leading-snug text-foreground line-clamp-2">
             {product.name}
           </h3>
-          <p className="text-[11px] text-muted-foreground">{product.unit}</p>
         </div>
         <div className="flex items-center justify-between gap-1 border-t border-border pt-2">
           <span className="flex items-center gap-1 text-[10px] font-medium text-muted-foreground">

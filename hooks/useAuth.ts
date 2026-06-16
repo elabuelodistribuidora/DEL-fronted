@@ -1,11 +1,11 @@
 'use client'
 
 import { useAuthStore } from '@/store/authStore'
-import { authService, type RegisterPayload } from '@/services/auth.service'
+import { authService } from '@/services/auth.service'
 
 /**
- * Hook de autenticación. Envuelve los servicios y persiste la sesión
- * en el authStore (token + user) tras login/registro.
+ * Hook de autenticación. Envuelve el login y persiste la sesión
+ * (token + user) en el authStore.
  */
 export function useAuth() {
   const token = useAuthStore((s) => s.token)
@@ -20,12 +20,6 @@ export function useAuth() {
     return res.user
   }
 
-  const register = async (payload: RegisterPayload) => {
-    const res = await authService.register(payload)
-    setSession(res.token, res.user)
-    return res.user
-  }
-
   return {
     token,
     user,
@@ -33,7 +27,6 @@ export function useAuth() {
     isAuthenticated: Boolean(token),
     isAdmin: user?.role === 'admin',
     login,
-    register,
     logout,
   }
 }

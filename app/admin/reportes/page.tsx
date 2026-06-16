@@ -10,7 +10,6 @@ type TopProduct = { productId: string; name: string; unitsSold: number }
 
 const STATUS_ORDER: OrderStatus[] = [
   'pending',
-  'paid',
   'processing',
   'shipped',
   'delivered',
@@ -56,13 +55,13 @@ export default function AdminReportesPage() {
       <div className="grid gap-4 sm:grid-cols-3">
         <Kpi
           icon={TrendingUp}
-          label="Ingresos (pagados)"
+          label="Total en pedidos"
           value={formatPrice(stats?.ventas.revenue ?? 0)}
         />
         <Kpi
           icon={ShoppingBag}
-          label="Órdenes pagadas"
-          value={String(stats?.ventas.paidOrders ?? 0)}
+          label="Pedidos"
+          value={String(stats?.ventas.orders ?? 0)}
         />
         <Kpi
           icon={Package}

@@ -3,20 +3,17 @@ import { api } from '@/utils/api'
 export type ServerCartItem = {
   id: string
   productId: string
-  variantId?: string | null
   quantity: number
   unitPrice: number
   lineTotal: number
-  variantName?: string | null
   product: {
     id: string
     name: string
     slug: string
-    brand: string
-    unit: string
+    sku?: string | null
     image?: string | null
     imageUrl?: string | null
-    stock: number
+    inStock: boolean
   }
 }
 
@@ -29,8 +26,8 @@ export type ServerCart = {
 export const cartService = {
   get: () => api.get<ServerCart>('/cart'),
 
-  addItem: (productId: string, quantity: number, variantId?: string) =>
-    api.post<ServerCart>('/cart/items', { productId, quantity, variantId }),
+  addItem: (productId: string, quantity: number) =>
+    api.post<ServerCart>('/cart/items', { productId, quantity }),
 
   updateItem: (itemId: string, quantity: number) =>
     api.patch<ServerCart>(`/cart/items/${itemId}`, { quantity }),
@@ -40,17 +37,12 @@ export const cartService = {
 
   clear: () => api.delete<ServerCart>('/cart'),
 
-  /**
-   * Reemplaza el carrito del servidor por una lista de items (vacía + agrega).
-   * Se usa para sincronizar el carrito local (Zustand) antes del checkout.
-   */
-  replace: async (
-    items: Array<{ productId: string; quantity: number; variantId?: string }>,
-  ) => {
+  /** Reemplaza el carrito del servidor (vacía + agrega) antes del checkout. */
+  replace: async (items: Array<{ productId: string; quantity: number }>) => {
     await cartService.clear()
     let last: ServerCart | null = null
     for (const it of items) {
-      last = await cartService.addItem(it.productId, it.quantity, it.variantId)
+      last = await cartService.addItem(it.productId, it.quantity)
     }
     return last ?? { items: [], subtotal: 0, itemCount: 0 }
   },

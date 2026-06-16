@@ -2,8 +2,13 @@
 
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
-import { ArrowLeft, MapPin, CreditCard, Truck } from 'lucide-react'
+import {
+  ArrowLeft,
+  MapPin,
+  ShoppingCart,
+  CheckCircle2,
+  ArrowRight,
+} from 'lucide-react'
 import { SiteHeader } from '@/components/layout/site-header'
 import { SiteFooter } from '@/components/layout/site-footer'
 import { Button } from '@/components/ui/button'
@@ -14,10 +19,9 @@ import { cartService } from '@/services/cart.service'
 import { ordersService } from '@/services/orders.service'
 import { usersService } from '@/services/users.service'
 import { formatPrice } from '@/utils/formatters'
-import type { ShippingAddress } from '@/types/order'
+import type { Order, ShippingAddress } from '@/types/order'
 
-type Step = 'shipping' | 'payment'
-type PaymentMethod = 'mercadopago' | 'transfer' | 'cash'
+type Step = 'cart' | 'location' | 'done'
 
 const emptyAddress: ShippingAddress = {
   fullName: '',
@@ -32,39 +36,36 @@ const emptyAddress: ShippingAddress = {
 
 export default function CheckoutPage() {
   const { items, isEmpty, total, clearCart } = useCart()
-  const router = useRouter()
 
-  const [step, setStep] = useState<Step>('shipping')
+  const [step, setStep] = useState<Step>('cart')
   const [address, setAddress] = useState<ShippingAddress>(emptyAddress)
-  const [payment, setPayment] = useState<PaymentMethod>('mercadopago')
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [order, setOrder] = useState<Order | null>(null)
 
-  // Prefill con la dirección del negocio guardada en el registro
+  // Prefill con la ubicación guardada del cliente
   useEffect(() => {
     usersService
       .me()
       .then((me) => {
-        const a = (me.addresses as ShippingAddress[] | undefined)?.[0] as
-          | (ShippingAddress & { isDefault?: boolean })
-          | undefined
+        const a = me.addresses?.[0]
         if (a) {
           setAddress({
-            fullName: a.fullName || me.businessName || me.name || '',
+            fullName: a.fullName || me.name || '',
             street: a.street ?? '',
             number: a.number ?? '',
             floor: a.floor ?? '',
             city: a.city ?? '',
             province: a.province ?? '',
             postalCode: a.postalCode ?? '',
-            phone: a.phone || me.phone || '',
+            phone: a.phone || '',
           })
         }
       })
       .catch(() => {})
   }, [])
 
-  if (isEmpty) {
+  if (isEmpty && step !== 'done') {
     return (
       <div className="flex min-h-screen flex-col">
         <SiteHeader />
@@ -82,15 +83,10 @@ export default function CheckoutPage() {
     )
   }
 
-  const steps: { id: Step; label: string; icon: React.ReactNode }[] = [
-    { id: 'shipping', label: 'Envío', icon: <MapPin className="size-4" /> },
-    { id: 'payment', label: 'Pago', icon: <CreditCard className="size-4" /> },
-  ]
-
   const setField = (key: keyof ShippingAddress, value: string) =>
     setAddress((a) => ({ ...a, [key]: value }))
 
-  const shippingValid =
+  const locationValid =
     address.fullName &&
     address.street &&
     address.number &&
@@ -99,33 +95,30 @@ export default function CheckoutPage() {
     address.postalCode &&
     address.phone
 
+  const steps: { id: Step; label: string; icon: React.ReactNode }[] = [
+    { id: 'cart', label: 'Carrito', icon: <ShoppingCart className="size-4" /> },
+    { id: 'location', label: 'Ubicación', icon: <MapPin className="size-4" /> },
+    { id: 'done', label: 'Listo', icon: <CheckCircle2 className="size-4" /> },
+  ]
+
   const handleSubmit = async () => {
     setSubmitting(true)
     setError(null)
     try {
       await cartService.replace(
-        items.map((i) => ({
-          productId: i.product.id,
-          quantity: i.quantity,
-          variantId: i.variantId,
-        })),
+        items.map((i) => ({ productId: i.product.id, quantity: i.quantity })),
       )
-      const { order, payment: pay } = await ordersService.checkout({
-        paymentMethod: payment,
+      const { order: created } = await ordersService.checkout({
         shippingAddress: address,
       })
       clearCart()
-      if (payment === 'mercadopago' && pay.initPoint) {
-        window.location.href = pay.initPoint
-      } else {
-        router.push(
-          `/checkout/confirmacion?order=${order.number}&id=${order.id}`,
-        )
-      }
+      setOrder(created)
+      setStep('done')
     } catch (err) {
       setError(
-        err instanceof Error ? err.message : 'No se pudo procesar el pedido',
+        err instanceof Error ? err.message : 'No se pudo crear la orden',
       )
+    } finally {
       setSubmitting(false)
     }
   }
@@ -135,36 +128,40 @@ export default function CheckoutPage() {
       <SiteHeader />
       <main className="flex-1">
         <div className="mx-auto w-full max-w-4xl px-4 py-8 sm:px-6 lg:px-8">
-          <Link
-            href="/carrito"
-            className="mb-6 inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground"
-          >
-            <ArrowLeft className="size-4" />
-            Volver al carrito
-          </Link>
+          {step !== 'done' && (
+            <Link
+              href="/carrito"
+              className="mb-6 inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground"
+            >
+              <ArrowLeft className="size-4" />
+              Volver al carrito
+            </Link>
+          )}
 
-          {/* Steps */}
+          {/* Stepper */}
           <div className="mb-8 flex items-center gap-2">
-            {steps.map((s, i) => (
-              <div key={s.id} className="flex items-center gap-2">
-                <button
-                  onClick={() => {
-                    if (steps.findIndex((x) => x.id === step) > i) setStep(s.id)
-                  }}
-                  className={`flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium transition-colors ${
-                    step === s.id
-                      ? 'bg-primary text-primary-foreground'
-                      : steps.findIndex((x) => x.id === step) > i
-                        ? 'bg-primary/10 text-primary'
-                        : 'bg-muted text-muted-foreground'
-                  }`}
-                >
-                  {s.icon}
-                  <span className="hidden sm:inline">{s.label}</span>
-                </button>
-                {i < steps.length - 1 && <div className="h-px w-6 bg-border" />}
-              </div>
-            ))}
+            {steps.map((s, i) => {
+              const stepOrder = ['cart', 'location', 'done']
+              const active = step === s.id
+              const done = stepOrder.indexOf(step) > i
+              return (
+                <div key={s.id} className="flex items-center gap-2">
+                  <div
+                    className={`flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium transition-colors ${
+                      active
+                        ? 'bg-primary text-primary-foreground'
+                        : done
+                          ? 'bg-primary/10 text-primary'
+                          : 'bg-muted text-muted-foreground'
+                    }`}
+                  >
+                    {s.icon}
+                    <span className="hidden sm:inline">{s.label}</span>
+                  </div>
+                  {i < steps.length - 1 && <div className="h-px w-6 bg-border" />}
+                </div>
+              )
+            })}
           </div>
 
           {error && (
@@ -173,14 +170,52 @@ export default function CheckoutPage() {
             </p>
           )}
 
-          {/* Step: Envío */}
-          {step === 'shipping' && (
+          {/* Paso 1: carrito */}
+          {step === 'cart' && (
             <div className="form-section space-y-4">
-              <h2 className="form-section__title">Dirección de entrega</h2>
-              <p className="flex items-center gap-2 rounded-lg bg-muted px-3 py-2 text-sm text-muted-foreground">
-                <Truck className="size-4 shrink-0" />
-                Enviamos con transporte propio por encomienda. El envío se
-                coordina luego de confirmar el pedido.
+              <h2 className="form-section__title">Tu carrito</h2>
+              <div className="divide-y divide-border rounded-xl border border-border">
+                {items.map((item) => (
+                  <div
+                    key={item.id}
+                    className="flex items-center justify-between gap-4 p-4"
+                  >
+                    <div>
+                      <p className="text-sm font-medium text-foreground">
+                        {item.product.name}
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        {item.quantity} × {formatPrice(item.price)}
+                      </p>
+                    </div>
+                    <p className="text-sm font-medium">
+                      {formatPrice(item.price * item.quantity)}
+                    </p>
+                  </div>
+                ))}
+              </div>
+              <div className="flex items-center justify-between rounded-xl bg-muted px-4 py-3">
+                <span className="font-heading font-semibold">Total</span>
+                <span className="font-heading text-lg font-bold">
+                  {formatPrice(total)}
+                </span>
+              </div>
+              <Button
+                className="mt-2 rounded-full"
+                onClick={() => setStep('location')}
+              >
+                Continuar
+                <ArrowRight className="size-4" />
+              </Button>
+            </div>
+          )}
+
+          {/* Paso 2: ubicación */}
+          {step === 'location' && (
+            <div className="form-section space-y-4">
+              <h2 className="form-section__title">Ubicación de entrega</h2>
+              <p className="text-sm text-muted-foreground">
+                Confirmá a dónde enviamos el pedido.
               </p>
               <div className="form-section__grid">
                 <div className="space-y-2">
@@ -189,7 +224,6 @@ export default function CheckoutPage() {
                     id="name"
                     value={address.fullName}
                     onChange={(e) => setField('fullName', e.target.value)}
-                    placeholder="Librería del Centro"
                   />
                 </div>
                 <div className="space-y-2">
@@ -198,7 +232,6 @@ export default function CheckoutPage() {
                     id="phone"
                     value={address.phone}
                     onChange={(e) => setField('phone', e.target.value)}
-                    placeholder="+54 341 000-0000"
                   />
                 </div>
                 <div className="space-y-2">
@@ -207,7 +240,6 @@ export default function CheckoutPage() {
                     id="street"
                     value={address.street}
                     onChange={(e) => setField('street', e.target.value)}
-                    placeholder="Av. Corrientes"
                   />
                 </div>
                 <div className="space-y-2">
@@ -216,7 +248,6 @@ export default function CheckoutPage() {
                     id="number"
                     value={address.number}
                     onChange={(e) => setField('number', e.target.value)}
-                    placeholder="1234"
                   />
                 </div>
                 <div className="space-y-2">
@@ -225,7 +256,6 @@ export default function CheckoutPage() {
                     id="floor"
                     value={address.floor}
                     onChange={(e) => setField('floor', e.target.value)}
-                    placeholder="3º B"
                   />
                 </div>
                 <div className="space-y-2">
@@ -234,7 +264,6 @@ export default function CheckoutPage() {
                     id="city"
                     value={address.city}
                     onChange={(e) => setField('city', e.target.value)}
-                    placeholder="Rosario"
                   />
                 </div>
                 <div className="space-y-2">
@@ -243,7 +272,6 @@ export default function CheckoutPage() {
                     id="province"
                     value={address.province}
                     onChange={(e) => setField('province', e.target.value)}
-                    placeholder="Santa Fe"
                   />
                 </div>
                 <div className="space-y-2">
@@ -252,83 +280,39 @@ export default function CheckoutPage() {
                     id="postal"
                     value={address.postalCode}
                     onChange={(e) => setField('postalCode', e.target.value)}
-                    placeholder="2000"
                   />
                 </div>
               </div>
               <Button
                 className="mt-2 rounded-full"
-                disabled={!shippingValid}
-                onClick={() => setStep('payment')}
+                disabled={!locationValid}
+                loading={submitting}
+                onClick={handleSubmit}
               >
-                Continuar
+                Confirmar pedido
               </Button>
             </div>
           )}
 
-          {/* Step: Pago */}
-          {step === 'payment' && (
-            <div className="form-section space-y-4">
-              <h2 className="form-section__title">Método de pago</h2>
-              <div className="space-y-3">
-                {[
-                  { id: 'mercadopago', label: 'MercadoPago', desc: 'Tarjetas, QR y más' },
-                  { id: 'transfer', label: 'Transferencia bancaria', desc: 'Confirmación en 24 hs' },
-                  { id: 'cash', label: 'Efectivo', desc: 'Al coordinar la entrega' },
-                ].map((m) => (
-                  <label
-                    key={m.id}
-                    className={`flex cursor-pointer items-center gap-4 rounded-xl border p-4 transition-colors ${
-                      payment === m.id
-                        ? 'border-primary bg-primary/5'
-                        : 'border-border hover:border-primary/30'
-                    }`}
-                  >
-                    <input
-                      type="radio"
-                      name="payment"
-                      value={m.id}
-                      checked={payment === m.id}
-                      onChange={() => setPayment(m.id as PaymentMethod)}
-                      className="accent-primary"
-                    />
-                    <div>
-                      <p className="font-medium text-foreground">{m.label}</p>
-                      <p className="text-sm text-muted-foreground">{m.desc}</p>
-                    </div>
-                  </label>
-                ))}
+          {/* Paso 3: confirmación */}
+          {step === 'done' && order && (
+            <div className="flex flex-col items-center py-10 text-center">
+              <CheckCircle2 className="size-16 text-green-500" />
+              <h2 className="mt-4 font-heading text-2xl font-bold text-foreground">
+                ¡Tu orden #{order.number} fue creada!
+              </h2>
+              <p className="mt-2 max-w-md text-muted-foreground">
+                Será procesada dentro de las <strong>48 hs hábiles</strong> y
+                recibirás un email con los detalles del pedido.
+              </p>
+              <div className="mt-8 flex flex-wrap justify-center gap-3">
+                <Button asChild className="rounded-full">
+                  <Link href="/cuenta/pedidos">Ver mis pedidos</Link>
+                </Button>
+                <Button variant="ghost" asChild className="rounded-full">
+                  <Link href="/catalogo">Seguir comprando</Link>
+                </Button>
               </div>
-
-              {/* Resumen */}
-              <div className="rounded-xl border border-border bg-card p-5">
-                <div className="space-y-2 text-sm">
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Subtotal</span>
-                    <span className="font-medium">{formatPrice(total)}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Envío</span>
-                    <span className="text-muted-foreground">
-                      Encomienda propia · a coordinar
-                    </span>
-                  </div>
-                  <div className="flex justify-between border-t border-border pt-2">
-                    <span className="font-heading font-semibold">Total</span>
-                    <span className="font-heading text-lg font-bold">
-                      {formatPrice(total)}
-                    </span>
-                  </div>
-                </div>
-              </div>
-
-              <Button
-                className="mt-2 rounded-full"
-                onClick={handleSubmit}
-                loading={submitting}
-              >
-                {payment === 'mercadopago' ? 'Ir a pagar' : 'Confirmar pedido'}
-              </Button>
             </div>
           )}
         </div>

@@ -4,13 +4,11 @@ export type CartItem = {
   id: string
   product: Pick<
     Product,
-    'id' | 'name' | 'brand' | 'unit' | 'image' | 'imageUrl'
+    'id' | 'name' | 'slug' | 'sku' | 'image' | 'imageUrl' | 'inStock'
   >
-  /** Precio unitario mayorista al momento de agregar (0 si aún sin sesión). */
+  /** Precio unitario mayorista al momento de agregar. */
   price: number
   quantity: number
-  variantId?: string
-  variantName?: string
 }
 
 export type Cart = {

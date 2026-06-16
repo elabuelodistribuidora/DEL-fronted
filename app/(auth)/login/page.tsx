@@ -1,10 +1,9 @@
 import { Suspense } from 'react'
-import Link from 'next/link'
 import { SiteHeader } from '@/components/layout/site-header'
 import { SiteFooter } from '@/components/layout/site-footer'
 import { AccountTabs } from '@/components/cuenta/account-tabs'
 
-export const metadata = { title: 'Iniciar sesión | Distribuidora de Arte' }
+export const metadata = { title: 'Iniciar sesión | Distribuidora El Abuelo' }
 
 export default function LoginPage() {
   return (
@@ -21,17 +20,8 @@ export default function LoginPage() {
             </p>
           </div>
           <Suspense>
-            <AccountTabs defaultTab="login" />
+            <AccountTabs />
           </Suspense>
-          <p className="text-center text-sm text-muted-foreground">
-            ¿No tenés cuenta?{' '}
-            <Link
-              href="/registro"
-              className="font-medium text-primary hover:underline"
-            >
-              Registrate
-            </Link>
-          </p>
         </div>
       </main>
       <SiteFooter />

@@ -18,7 +18,6 @@ import { formatPrice, formatDate } from '@/utils/formatters'
 const STATUS_OPTIONS: (OrderStatus | 'all')[] = [
   'all',
   'pending',
-  'paid',
   'processing',
   'shipped',
   'delivered',

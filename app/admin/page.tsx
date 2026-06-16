@@ -46,16 +46,16 @@ export default function AdminDashboard() {
         ? String(stats.ventas.ordersByStatus['pending'] ?? 0)
         : '—',
       icon: ShoppingBag,
-      delta: `${stats?.ventas.paidOrders ?? 0} pagadas`,
+      delta: `${stats?.ventas.orders ?? 0} en total`,
     },
     {
-      label: 'Clientes registrados',
+      label: 'Clientes',
       value: stats ? String(stats.clientes.totalCustomers) : '—',
       icon: Users,
-      delta: stats ? `${stats.catalogo.totalClientes} proveedores` : '',
+      delta: stats ? `${stats.catalogo.totalMarcas} marcas` : '',
     },
     {
-      label: 'Ventas (pagadas)',
+      label: 'Total pedidos',
       value: stats ? formatPrice(stats.ventas.revenue) : '—',
       icon: TrendingUp,
       delta: 'Acumulado',
@@ -125,29 +125,25 @@ export default function AdminDashboard() {
           </div>
         </div>
 
-        {/* Stock bajo */}
+        {/* Sin stock */}
         <div className="rounded-xl border border-border bg-card p-6">
           <h2 className="font-heading text-base font-semibold text-foreground">
-            Stock bajo
+            Sin stock
           </h2>
           <div className="mt-4 space-y-2">
-            {stats && stats.lowStock.length > 0 ? (
-              stats.lowStock.map((p) => (
+            {stats && stats.outOfStock.length > 0 ? (
+              stats.outOfStock.map((p) => (
                 <div
                   key={p.id}
                   className="flex items-center justify-between text-sm"
                 >
                   <span className="text-foreground">{p.name}</span>
-                  <span
-                    className={`font-medium ${p.stock === 0 ? 'text-destructive' : 'text-amber-600'}`}
-                  >
-                    {p.stock} u.
-                  </span>
+                  <span className="font-medium text-destructive">Sin stock</span>
                 </div>
               ))
             ) : (
               <p className="text-sm text-muted-foreground">
-                Sin alertas de stock.
+                Todos los productos tienen stock.
               </p>
             )}
           </div>

@@ -72,13 +72,13 @@ export default function CarritoPage() {
                           <p className="font-heading text-sm font-semibold text-foreground">
                             {item.product.name}
                           </p>
-                          <p className="text-xs text-muted-foreground">
-                            {item.product.brand} · {item.product.unit}
-                          </p>
-                          {item.variantName && (
+                          {item.product.sku && (
                             <p className="text-xs text-muted-foreground">
-                              Variante: {item.variantName}
+                              Cód. {item.product.sku}
                             </p>
+                          )}
+                          {!item.product.inStock && (
+                            <p className="text-xs text-destructive">Sin stock</p>
                           )}
                         </div>
                         <p className="font-heading text-sm font-semibold text-foreground">
@@ -91,11 +91,7 @@ export default function CarritoPage() {
                           size="icon"
                           className="size-7 rounded-full"
                           onClick={() =>
-                            updateQuantity(
-                              item.product.id,
-                              item.quantity - 1,
-                              item.variantId,
-                            )
+                            updateQuantity(item.product.id, item.quantity - 1)
                           }
                         >
                           <Minus className="size-3" />
@@ -108,11 +104,7 @@ export default function CarritoPage() {
                           size="icon"
                           className="size-7 rounded-full"
                           onClick={() =>
-                            updateQuantity(
-                              item.product.id,
-                              item.quantity + 1,
-                              item.variantId,
-                            )
+                            updateQuantity(item.product.id, item.quantity + 1)
                           }
                         >
                           <Plus className="size-3" />
@@ -124,9 +116,7 @@ export default function CarritoPage() {
                           variant="ghost"
                           size="icon"
                           className="ml-auto size-7 text-destructive hover:text-destructive"
-                          onClick={() =>
-                            removeItem(item.product.id, item.variantId)
-                          }
+                          onClick={() => removeItem(item.product.id)}
                         >
                           <Trash2 className="size-3.5" />
                         </Button>

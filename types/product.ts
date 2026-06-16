@@ -1,6 +1,5 @@
 /**
  * Categoría (rubro) — modelo relacional del backend.
- * El admin las administra; el front las usa en filtros y selects.
  */
 export type Categoria = {
   id: string
@@ -12,10 +11,9 @@ export type Categoria = {
 }
 
 /**
- * Cliente = proveedor oficial del producto (etiqueta: nombre + logo).
- * NO es el comprador.
+ * Marca (antes "proveedor") — etiqueta del producto: nombre + logo.
  */
-export type Cliente = {
+export type Marca = {
   id: string
   name: string
   slug: string
@@ -25,31 +23,19 @@ export type Cliente = {
   _count?: { products: number }
 }
 
-export type ProductVariant = {
-  id: string
-  productId: string
-  name: string
-  sku?: string | null
-  stock: number
-  price?: number | null
-  attributes: Record<string, string>
-}
-
 /**
  * Producto tal como lo serializa el backend (`/products`).
- * `price` es el precio mayorista (number). Las imágenes vienen como key de S3
- * (`image`) y como URL pública ya resuelta (`imageUrl`).
  */
 export type Product = {
   id: string
   name: string
   slug: string
   description?: string | null
-  brand: string
-  unit: string
   sku?: string | null
   price: number
-  stock: number
+  priceUpdatedAt?: string | null
+  inStock: boolean
+  hidden?: boolean
   image?: string | null
   imageUrl?: string | null
   images?: string[]
@@ -58,12 +44,11 @@ export type Product = {
   featured?: boolean
   active?: boolean
   categoriaId: string
-  clienteId?: string | null
+  marcaId?: string | null
   categoria?: Pick<Categoria, 'id' | 'name' | 'slug'> | null
-  cliente?:
-    | (Pick<Cliente, 'id' | 'name' | 'slug'> & { logoUrl?: string | null })
+  marca?:
+    | (Pick<Marca, 'id' | 'name' | 'slug'> & { logoUrl?: string | null })
     | null
-  variants?: ProductVariant[]
   createdAt?: string
   updatedAt?: string
 }
@@ -72,12 +57,13 @@ export type Product = {
 export type ProductFilters = {
   search?: string
   categoria?: string // slug de categoría
-  cliente?: string // slug de proveedor
-  brand?: string
+  marca?: string // slug de marca
   featured?: boolean
+  inStock?: boolean
   minPrice?: number
   maxPrice?: number
   includeInactive?: boolean
+  includeHidden?: boolean
   sort?: 'recent' | 'name' | 'price_asc' | 'price_desc'
   page?: number
   limit?: number

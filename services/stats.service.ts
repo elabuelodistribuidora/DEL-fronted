@@ -4,16 +4,16 @@ export type DashboardStats = {
   catalogo: {
     totalProducts: number
     activeProducts: number
-    totalClientes: number
+    totalMarcas: number
     totalCategorias: number
   }
   clientes: { totalCustomers: number }
   ventas: {
     revenue: number
-    paidOrders: number
+    orders: number
     ordersByStatus: Record<string, number>
   }
-  lowStock: Array<{ id: string; name: string; stock: number; sku?: string | null }>
+  outOfStock: Array<{ id: string; name: string; sku?: string | null }>
   recentOrders: Array<{
     id: string
     number: number

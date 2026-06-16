@@ -2,6 +2,7 @@ import { Suspense } from 'react'
 import { SiteHeader } from '@/components/layout/site-header'
 import { SiteFooter } from '@/components/layout/site-footer'
 import { WhatsappButton } from '@/components/layout/whatsapp-button'
+import { CartBanner } from '@/components/layout/cart-banner'
 import { ProductCatalog } from '@/components/catalogo/product-catalog'
 
 export const metadata = {
@@ -12,6 +13,7 @@ export const metadata = {
 export default function CatalogoPage() {
   return (
     <div className="flex min-h-screen flex-col">
+      <CartBanner />
       <SiteHeader />
       <main className="flex-1">
         <div className="border-b border-border bg-muted/40">

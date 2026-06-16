@@ -2,13 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
-import {
-  ArrowLeft,
-  Package,
-  MapPin,
-  Loader2,
-  XCircle,
-} from 'lucide-react'
+import { ArrowLeft, Package, MapPin, Loader2, XCircle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { ordersService } from '@/services/orders.service'
 import { ORDER_STATUS_LABELS, type Order } from '@/types/order'
@@ -103,8 +97,7 @@ export function OrderDetail({ id }: { id: string }) {
                   {item.name}
                 </p>
                 <p className="text-xs text-muted-foreground">
-                  {item.brand} · {item.unit}
-                  {item.variantName ? ` · ${item.variantName}` : ''} ·{' '}
+                  {item.code ? `Cód. ${item.code} · ` : ''}
                   {item.quantity} × {formatPrice(item.unitPrice)}
                 </p>
               </div>
@@ -114,23 +107,9 @@ export function OrderDetail({ id }: { id: string }) {
             </div>
           ))}
         </div>
-        <div className="mt-4 space-y-1 border-t border-border pt-4 text-sm">
-          <div className="flex justify-between">
-            <span className="text-muted-foreground">Subtotal</span>
-            <span>{formatPrice(order.subtotal)}</span>
-          </div>
-          <div className="flex justify-between">
-            <span className="text-muted-foreground">Envío</span>
-            <span>
-              {order.shippingCost === 0
-                ? 'Gratis'
-                : formatPrice(order.shippingCost)}
-            </span>
-          </div>
-          <div className="flex justify-between border-t border-border pt-2 font-heading font-bold">
-            <span>Total</span>
-            <span>{formatPrice(order.total)}</span>
-          </div>
+        <div className="mt-4 flex justify-between border-t border-border pt-4 font-heading font-bold">
+          <span>Total</span>
+          <span>{formatPrice(order.total)}</span>
         </div>
       </div>
 

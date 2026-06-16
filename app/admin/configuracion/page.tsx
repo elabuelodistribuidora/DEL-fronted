@@ -5,7 +5,6 @@ import {
   Loader2,
   CheckCircle2,
   XCircle,
-  CreditCard,
   ImageIcon,
   Save,
 } from 'lucide-react'
@@ -14,14 +13,12 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { usersService } from '@/services/users.service'
 import { uploadService } from '@/services/upload.service'
-import { api } from '@/utils/api'
 import { useAuthStore } from '@/store/authStore'
 import type { User } from '@/types/user'
 
 export default function AdminConfiguracionPage() {
   const setUser = useAuthStore((s) => s.setUser)
   const [loading, setLoading] = useState(true)
-  const [mpConfigured, setMpConfigured] = useState(false)
   const [s3Configured, setS3Configured] = useState(false)
   const [profile, setProfile] = useState<Partial<User>>({})
   const [saving, setSaving] = useState(false)
@@ -29,14 +26,10 @@ export default function AdminConfiguracionPage() {
 
   useEffect(() => {
     Promise.all([
-      api
-        .get<{ configured: boolean }>('/payments/config')
-        .catch(() => ({ configured: false })),
       uploadService.status().catch(() => ({ configured: false })),
       usersService.me().catch(() => null),
     ])
-      .then(([mp, s3, me]) => {
-        setMpConfigured(mp.configured)
+      .then(([s3, me]) => {
         setS3Configured(s3.configured)
         if (me) setProfile(me)
       })
@@ -48,9 +41,6 @@ export default function AdminConfiguracionPage() {
     try {
       const updated = await usersService.updateProfile({
         name: profile.name ?? undefined,
-        phone: profile.phone ?? undefined,
-        businessName: profile.businessName ?? undefined,
-        cuit: profile.cuit ?? undefined,
       })
       setUser(updated)
       setSaved(true)
@@ -80,22 +70,33 @@ export default function AdminConfiguracionPage() {
           Integraciones
         </h2>
         <p className="mt-1 text-sm text-muted-foreground">
-          Estado de los servicios externos. Se activan al cargar las credenciales
-          en el backend (variables de entorno).
+          Se activan al cargar las credenciales en el backend.
         </p>
         <div className="mt-4 space-y-3">
-          <IntegrationRow
-            icon={CreditCard}
-            label="MercadoPago"
-            description="Cobros online (checkout + webhook)"
-            ok={mpConfigured}
-          />
-          <IntegrationRow
-            icon={ImageIcon}
-            label="Almacenamiento S3"
-            description="Subida de imágenes de productos y logos"
-            ok={s3Configured}
-          />
+          <div className="flex items-center justify-between rounded-lg border border-border px-4 py-3">
+            <div className="flex items-center gap-3">
+              <ImageIcon className="size-5 text-muted-foreground" />
+              <div>
+                <p className="text-sm font-medium text-foreground">
+                  Almacenamiento S3
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  Subida de imágenes de productos y logos
+                </p>
+              </div>
+            </div>
+            {s3Configured ? (
+              <span className="inline-flex items-center gap-1.5 text-sm font-medium text-green-600">
+                <CheckCircle2 className="size-4" />
+                Conectado
+              </span>
+            ) : (
+              <span className="inline-flex items-center gap-1.5 text-sm font-medium text-muted-foreground">
+                <XCircle className="size-4" />
+                Sin configurar
+              </span>
+            )}
+          </div>
         </div>
       </div>
 
@@ -118,33 +119,6 @@ export default function AdminConfiguracionPage() {
             <Label>Email</Label>
             <Input value={profile.email ?? ''} disabled />
           </div>
-          <div className="space-y-2">
-            <Label>Teléfono</Label>
-            <Input
-              value={profile.phone ?? ''}
-              onChange={(e) =>
-                setProfile((p) => ({ ...p, phone: e.target.value }))
-              }
-            />
-          </div>
-          <div className="space-y-2">
-            <Label>Nombre del comercio</Label>
-            <Input
-              value={profile.businessName ?? ''}
-              onChange={(e) =>
-                setProfile((p) => ({ ...p, businessName: e.target.value }))
-              }
-            />
-          </div>
-          <div className="space-y-2">
-            <Label>CUIT / CUIL</Label>
-            <Input
-              value={profile.cuit ?? ''}
-              onChange={(e) =>
-                setProfile((p) => ({ ...p, cuit: e.target.value }))
-              }
-            />
-          </div>
         </div>
         <Button
           onClick={saveProfile}
@@ -161,41 +135,6 @@ export default function AdminConfiguracionPage() {
           {saved ? 'Guardado' : 'Guardar cambios'}
         </Button>
       </div>
-    </div>
-  )
-}
-
-function IntegrationRow({
-  icon: Icon,
-  label,
-  description,
-  ok,
-}: {
-  icon: React.ComponentType<{ className?: string }>
-  label: string
-  description: string
-  ok: boolean
-}) {
-  return (
-    <div className="flex items-center justify-between rounded-lg border border-border px-4 py-3">
-      <div className="flex items-center gap-3">
-        <Icon className="size-5 text-muted-foreground" />
-        <div>
-          <p className="text-sm font-medium text-foreground">{label}</p>
-          <p className="text-xs text-muted-foreground">{description}</p>
-        </div>
-      </div>
-      {ok ? (
-        <span className="inline-flex items-center gap-1.5 text-sm font-medium text-green-600">
-          <CheckCircle2 className="size-4" />
-          Conectado
-        </span>
-      ) : (
-        <span className="inline-flex items-center gap-1.5 text-sm font-medium text-muted-foreground">
-          <XCircle className="size-4" />
-          Sin configurar
-        </span>
-      )}
     </div>
   )
 }

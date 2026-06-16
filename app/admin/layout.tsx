@@ -5,7 +5,7 @@ import {
   ShoppingBag,
   Users,
   Tag,
-  Warehouse,
+  BadgeCheck,
   BarChart2,
   Settings,
 } from 'lucide-react'
@@ -18,8 +18,8 @@ const navItems = [
   { href: '/admin/productos', label: 'Productos', icon: Package },
   { href: '/admin/ordenes', label: 'Órdenes', icon: ShoppingBag },
   { href: '/admin/categorias', label: 'Categorías', icon: Tag },
-  { href: '/admin/clientes', label: 'Proveedores', icon: Users },
-  { href: '/admin/inventario', label: 'Inventario', icon: Warehouse },
+  { href: '/admin/marcas', label: 'Marcas', icon: BadgeCheck },
+  { href: '/admin/clientes', label: 'Clientes', icon: Users },
   { href: '/admin/reportes', label: 'Reportes', icon: BarChart2 },
   { href: '/admin/configuracion', label: 'Configuración', icon: Settings },
 ]

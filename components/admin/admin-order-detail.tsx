@@ -2,18 +2,15 @@
 
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
-import { ArrowLeft, Loader2, MapPin } from 'lucide-react'
+import { ArrowLeft, Loader2, MapPin, Download } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
 import { ordersService } from '@/services/orders.service'
 import { ORDER_STATUS_LABELS, type Order, type OrderStatus } from '@/types/order'
 import { formatPrice, formatDateTime } from '@/utils/formatters'
 
 // Transiciones válidas (igual que el backend)
 const NEXT_STATES: Record<OrderStatus, OrderStatus[]> = {
-  pending: ['paid', 'cancelled'],
-  paid: ['processing', 'cancelled'],
+  pending: ['processing', 'cancelled'],
   processing: ['shipped', 'cancelled'],
   shipped: ['delivered'],
   delivered: [],
@@ -23,7 +20,6 @@ const NEXT_STATES: Record<OrderStatus, OrderStatus[]> = {
 export function AdminOrderDetail({ id }: { id: string }) {
   const [order, setOrder] = useState<Order | null>(null)
   const [loading, setLoading] = useState(true)
-  const [trackingCode, setTrackingCode] = useState('')
   const [updatingStatus, setUpdatingStatus] = useState<OrderStatus | null>(null)
   const [error, setError] = useState<string | null>(null)
 
@@ -40,11 +36,7 @@ export function AdminOrderDetail({ id }: { id: string }) {
     setUpdatingStatus(status)
     setError(null)
     try {
-      const updated = await ordersService.updateStatus(
-        order.id,
-        status,
-        status === 'shipped' ? trackingCode || undefined : undefined,
-      )
+      const updated = await ordersService.updateStatus(order.id, status)
       setOrder(updated)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'No se pudo actualizar')
@@ -80,12 +72,23 @@ export function AdminOrderDetail({ id }: { id: string }) {
 
   return (
     <div className="space-y-6">
-      <Link
-        href="/admin/ordenes"
-        className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground"
-      >
-        <ArrowLeft className="size-4" /> Órdenes
-      </Link>
+      <div className="flex items-center justify-between">
+        <Link
+          href="/admin/ordenes"
+          className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground"
+        >
+          <ArrowLeft className="size-4" /> Órdenes
+        </Link>
+        <Button
+          variant="outline"
+          size="sm"
+          className="rounded-full"
+          onClick={() => ordersService.downloadPdf(order.id, order.number)}
+        >
+          <Download className="size-4" />
+          PDF
+        </Button>
+      </div>
 
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
@@ -118,31 +121,19 @@ export function AdminOrderDetail({ id }: { id: string }) {
             Esta orden está en un estado final.
           </p>
         ) : (
-          <div className="mt-4 space-y-4">
-            {nextStates.includes('shipped') && (
-              <div className="max-w-xs space-y-2">
-                <Label>Remito / referencia (opcional)</Label>
-                <Input
-                  value={trackingCode}
-                  onChange={(e) => setTrackingCode(e.target.value)}
-                  placeholder="N° de remito o despacho"
-                />
-              </div>
-            )}
-            <div className="flex flex-wrap gap-2">
-              {nextStates.map((s) => (
-                <Button
-                  key={s}
-                  variant={s === 'cancelled' ? 'outline' : 'default'}
-                  className="rounded-full"
-                  loading={updatingStatus === s}
-                  disabled={updatingStatus !== null && updatingStatus !== s}
-                  onClick={() => changeStatus(s)}
-                >
-                  Marcar como {ORDER_STATUS_LABELS[s].toLowerCase()}
-                </Button>
-              ))}
-            </div>
+          <div className="mt-4 flex flex-wrap gap-2">
+            {nextStates.map((s) => (
+              <Button
+                key={s}
+                variant={s === 'cancelled' ? 'outline' : 'default'}
+                className="rounded-full"
+                loading={updatingStatus === s}
+                disabled={updatingStatus !== null && updatingStatus !== s}
+                onClick={() => changeStatus(s)}
+              >
+                Marcar como {ORDER_STATUS_LABELS[s].toLowerCase()}
+              </Button>
+            ))}
           </div>
         )}
       </div>
@@ -154,12 +145,15 @@ export function AdminOrderDetail({ id }: { id: string }) {
         </h2>
         <div className="mt-4 divide-y divide-border">
           {order.items.map((item) => (
-            <div key={item.id} className="flex items-center justify-between py-3 text-sm">
+            <div
+              key={item.id}
+              className="flex items-center justify-between py-3 text-sm"
+            >
               <div>
                 <p className="font-medium text-foreground">{item.name}</p>
                 <p className="text-xs text-muted-foreground">
-                  {item.brand} · {item.unit} · {item.quantity} ×{' '}
-                  {formatPrice(item.unitPrice)}
+                  {item.code ? `Cód. ${item.code} · ` : ''}
+                  {item.quantity} × {formatPrice(item.unitPrice)}
                 </p>
               </div>
               <span className="font-medium">
@@ -168,32 +162,16 @@ export function AdminOrderDetail({ id }: { id: string }) {
             </div>
           ))}
         </div>
-        <div className="mt-4 space-y-1 border-t border-border pt-4 text-sm">
-          <div className="flex justify-between">
-            <span className="text-muted-foreground">Subtotal</span>
-            <span>{formatPrice(order.subtotal)}</span>
-          </div>
-          <div className="flex justify-between">
-            <span className="text-muted-foreground">
-              Envío ({order.shippingMethod})
-            </span>
-            <span>{formatPrice(order.shippingCost)}</span>
-          </div>
-          <div className="flex justify-between border-t border-border pt-2 font-heading font-bold">
-            <span>Total</span>
-            <span>{formatPrice(order.total)}</span>
-          </div>
-          <p className="pt-2 text-xs text-muted-foreground">
-            Pago: {order.paymentMethod}
-            {order.payment ? ` · ${order.payment.status}` : ''}
-          </p>
+        <div className="mt-4 flex justify-between border-t border-border pt-4 font-heading font-bold">
+          <span>Total</span>
+          <span>{formatPrice(order.total)}</span>
         </div>
       </div>
 
       {/* Dirección */}
       <div className="rounded-xl border border-border bg-card p-6">
         <h2 className="font-heading text-base font-semibold text-foreground">
-          Envío
+          Ubicación de entrega
         </h2>
         <div className="mt-3 flex items-start gap-3 text-sm text-muted-foreground">
           <MapPin className="mt-0.5 size-4 shrink-0 text-primary" />
@@ -203,9 +181,9 @@ export function AdminOrderDetail({ id }: { id: string }) {
             {addr.postalCode}) · Tel: {addr.phone}
           </p>
         </div>
-        {order.trackingCode && (
+        {order.notes && (
           <p className="mt-2 text-sm text-muted-foreground">
-            Remito: <span className="font-mono">{order.trackingCode}</span>
+            Notas: {order.notes}
           </p>
         )}
       </div>

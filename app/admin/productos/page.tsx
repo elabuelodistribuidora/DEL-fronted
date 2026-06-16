@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
 import {
   Plus,
@@ -8,11 +8,19 @@ import {
   Search,
   ChevronLeft,
   ChevronRight,
+  Upload,
+  EyeOff,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { productsService } from '@/services/products.service'
-import type { Product } from '@/types/product'
+import { SearchableSelect } from '@/components/ui/searchable-select'
+import {
+  productsService,
+  type ImportResult,
+} from '@/services/products.service'
+import { categoriasService } from '@/services/categorias.service'
+import { marcasService } from '@/services/marcas.service'
+import type { Categoria, Marca, Product } from '@/types/product'
 import { formatPrice } from '@/utils/formatters'
 
 const PAGE_SIZE = 20
@@ -21,16 +29,27 @@ export default function AdminProductosPage() {
   const [products, setProducts] = useState<Product[]>([])
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
+  const [filterCategoria, setFilterCategoria] = useState('')
+  const [filterMarca, setFilterMarca] = useState('')
+  const [categorias, setCategorias] = useState<Categoria[]>([])
+  const [marcas, setMarcas] = useState<Marca[]>([])
   const [page, setPage] = useState(1)
   const [meta, setMeta] = useState({ total: 0, page: 1, totalPages: 1 })
   const [busyId, setBusyId] = useState<string | null>(null)
+  const [importing, setImporting] = useState(false)
+  const [importResult, setImportResult] = useState<ImportResult | null>(null)
+  const [importError, setImportError] = useState<string | null>(null)
+  const fileRef = useRef<HTMLInputElement>(null)
 
   const load = useCallback(async () => {
     setLoading(true)
     try {
       const res = await productsService.list({
         search: search.trim() || undefined,
+        categoria: filterCategoria || undefined,
+        marca: filterMarca || undefined,
         includeInactive: true,
+        includeHidden: true,
         page,
         limit: PAGE_SIZE,
       })
@@ -39,13 +58,19 @@ export default function AdminProductosPage() {
     } finally {
       setLoading(false)
     }
-  }, [search, page])
+  }, [search, filterCategoria, filterMarca, page])
 
-  // Al cambiar la búsqueda, volver a la página 1 (con debounce)
+  // Catálogos para los filtros
+  useEffect(() => {
+    categoriasService.list(true).then(setCategorias).catch(() => {})
+    marcasService.list(true).then(setMarcas).catch(() => {})
+  }, [])
+
+  // Volver a página 1 al cambiar búsqueda o filtros
   useEffect(() => {
     const t = setTimeout(() => setPage(1), 300)
     return () => clearTimeout(t)
-  }, [search])
+  }, [search, filterCategoria, filterMarca])
 
   useEffect(() => {
     load()
@@ -62,30 +87,98 @@ export default function AdminProductosPage() {
     }
   }
 
+  const handleImport = async (file?: File) => {
+    if (!file) return
+    setImporting(true)
+    setImportError(null)
+    setImportResult(null)
+    try {
+      const res = await productsService.importExcel(file)
+      setImportResult(res)
+      await load()
+    } catch (err) {
+      setImportError(err instanceof Error ? err.message : 'Error al importar')
+    } finally {
+      setImporting(false)
+      if (fileRef.current) fileRef.current.value = ''
+    }
+  }
+
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-wrap items-center justify-between gap-3">
         <h1 className="font-heading text-2xl font-bold text-foreground">
           Productos{' '}
           <span className="text-base font-normal text-muted-foreground">
             ({meta.total})
           </span>
         </h1>
-        <Button asChild className="rounded-full">
-          <Link href="/admin/productos/nuevo">
-            <Plus className="size-4" />
-            Nuevo producto
-          </Link>
-        </Button>
+        <div className="flex gap-2">
+          <input
+            ref={fileRef}
+            type="file"
+            accept=".xlsx,.xls"
+            className="hidden"
+            onChange={(e) => handleImport(e.target.files?.[0])}
+          />
+          <Button
+            variant="outline"
+            className="rounded-full"
+            loading={importing}
+            onClick={() => fileRef.current?.click()}
+          >
+            <Upload className="size-4" />
+            Importar Excel
+          </Button>
+          <Button asChild className="rounded-full">
+            <Link href="/admin/productos/nuevo">
+              <Plus className="size-4" />
+              Nuevo producto
+            </Link>
+          </Button>
+        </div>
       </div>
 
-      <div className="relative max-w-sm">
-        <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-        <Input
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          placeholder="Buscar por nombre o SKU..."
-          className="pl-9"
+      {importError && (
+        <p className="rounded-lg bg-destructive/10 px-4 py-3 text-sm text-destructive">
+          {importError}
+        </p>
+      )}
+      {importResult && (
+        <div className="rounded-lg bg-green-50 px-4 py-3 text-sm text-green-800">
+          Importación completa: <strong>{importResult.created}</strong> creados,{' '}
+          <strong>{importResult.updated}</strong> actualizados
+          {importResult.marcasCreadas.length > 0 &&
+            `, ${importResult.marcasCreadas.length} marcas nuevas`}
+          {importResult.categoriasCreadas.length > 0 &&
+            `, ${importResult.categoriasCreadas.length} categorías nuevas`}
+          .
+        </div>
+      )}
+
+      <div className="grid gap-3 sm:grid-cols-3">
+        <div className="relative">
+          <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+          <Input
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Buscar por nombre o código..."
+            className="pl-9"
+          />
+        </div>
+        <SearchableSelect
+          value={filterCategoria}
+          onChange={setFilterCategoria}
+          options={categorias.map((c) => ({ value: c.slug, label: c.name }))}
+          placeholder="Todas las categorías"
+          clearLabel="Todas las categorías"
+        />
+        <SearchableSelect
+          value={filterMarca}
+          onChange={setFilterMarca}
+          options={marcas.map((m) => ({ value: m.slug, label: m.name }))}
+          placeholder="Todas las marcas"
+          clearLabel="Todas las marcas"
         />
       </div>
 
@@ -98,9 +191,10 @@ export default function AdminProductosPage() {
           <table className="data-table">
             <thead>
               <tr>
+                <th>Código</th>
                 <th>Nombre</th>
                 <th>Categoría</th>
-                <th>Proveedor</th>
+                <th>Marca</th>
                 <th>Precio</th>
                 <th>Stock</th>
                 <th>Estado</th>
@@ -110,16 +204,24 @@ export default function AdminProductosPage() {
             <tbody>
               {products.map((p) => (
                 <tr key={p.id}>
-                  <td className="font-medium">{p.name}</td>
+                  <td className="font-mono text-xs text-muted-foreground">
+                    {p.sku ?? '—'}
+                  </td>
+                  <td className="font-medium">
+                    {p.name}
+                    {p.hidden && (
+                      <EyeOff className="ml-1 inline size-3 text-muted-foreground" />
+                    )}
+                  </td>
                   <td>{p.categoria?.name ?? '—'}</td>
-                  <td>{p.cliente?.name ?? '—'}</td>
+                  <td>{p.marca?.name ?? '—'}</td>
                   <td>{formatPrice(p.price)}</td>
-                  <td
-                    className={
-                      p.stock <= 5 ? 'font-medium text-amber-600' : ''
-                    }
-                  >
-                    {p.stock}
+                  <td>
+                    <span
+                      className={`status-badge ${p.inStock ? 'status-badge--delivered' : 'status-badge--cancelled'}`}
+                    >
+                      {p.inStock ? 'Sí' : 'No'}
+                    </span>
                   </td>
                   <td>
                     <span
@@ -152,7 +254,10 @@ export default function AdminProductosPage() {
               ))}
               {products.length === 0 && (
                 <tr>
-                  <td colSpan={7} className="py-8 text-center text-muted-foreground">
+                  <td
+                    colSpan={8}
+                    className="py-8 text-center text-muted-foreground"
+                  >
                     No hay productos.
                   </td>
                 </tr>

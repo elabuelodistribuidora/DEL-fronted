@@ -1,9 +1,8 @@
 import { api } from '@/utils/api'
-import type {
-  Paginated,
-  Product,
-  ProductFilters,
-} from '@/types/product'
+import { getAuthToken } from '@/store/authStore'
+import type { Paginated, Product, ProductFilters } from '@/types/product'
+
+const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3001'
 
 /** Construye la query string a partir de los filtros (omite vacíos). */
 function buildQuery(filters: ProductFilters = {}): string {
@@ -19,18 +18,26 @@ function buildQuery(filters: ProductFilters = {}): string {
 export type ProductInput = {
   name: string
   description?: string
-  brand: string
-  unit: string
   sku?: string
   price: number
-  stock?: number
+  inStock?: boolean
+  hidden?: boolean
   image?: string
   images?: string[]
   tags?: string[]
   featured?: boolean
   active?: boolean
   categoriaId: string
-  clienteId?: string | null
+  marcaId?: string | null
+}
+
+export type ImportResult = {
+  totalRows: number
+  created: number
+  updated: number
+  skipped: number
+  marcasCreadas: string[]
+  categoriasCreadas: string[]
 }
 
 export const productsService = {
@@ -46,4 +53,20 @@ export const productsService = {
     api.patch<Product>(`/products/${id}`, input),
 
   remove: (id: string) => api.delete<{ deleted: boolean }>(`/products/${id}`),
+
+  /** Importa productos desde un archivo Excel (multipart). */
+  async importExcel(file: File): Promise<ImportResult> {
+    const form = new FormData()
+    form.append('file', file)
+    const res = await fetch(`${API_BASE}/products/import`, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${getAuthToken() ?? ''}` },
+      body: form,
+    })
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({ message: res.statusText }))
+      throw new Error(err.message ?? 'Error al importar')
+    }
+    return res.json() as Promise<ImportResult>
+  },
 }

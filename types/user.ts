@@ -5,11 +5,9 @@ export type User = {
   name: string
   email: string
   role: UserRole
-  phone?: string | null
-  cuit?: string | null
-  businessName?: string | null
   active?: boolean
   createdAt?: string
+  addresses?: UserAddress[]
 }
 
 export type UserAddress = {
@@ -25,9 +23,13 @@ export type UserAddress = {
   postalCode: string
   phone?: string | null
   isDefault: boolean
+  lat?: number | null
+  lng?: number | null
+  placeId?: string | null
+  formattedAddress?: string | null
 }
 
-/** Respuesta de /auth/login y /auth/register. */
+/** Respuesta de /auth/login. */
 export type AuthResponse = {
   token: string
   user: User

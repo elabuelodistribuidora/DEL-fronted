@@ -64,10 +64,11 @@ export function ProductDetail({ slug }: { slug: string }) {
       {
         id: product.id,
         name: product.name,
-        brand: product.brand,
-        unit: product.unit,
+        slug: product.slug,
+        sku: product.sku,
         image: product.image,
         imageUrl: product.imageUrl,
+        inStock: product.inStock,
         price: product.price,
       },
       qty,
@@ -109,19 +110,18 @@ export function ProductDetail({ slug }: { slug: string }) {
               {product.categoria && (
                 <Badge variant="secondary">{product.categoria.name}</Badge>
               )}
-              <Badge variant="outline">{product.brand}</Badge>
-              {product.cliente && (
-                <Badge variant="outline" className="text-muted-foreground">
-                  Proveedor: {product.cliente.name}
-                </Badge>
+              {product.marca && (
+                <Badge variant="outline">{product.marca.name}</Badge>
               )}
             </div>
             <h1 className="mt-3 font-heading text-2xl font-bold text-foreground sm:text-3xl">
               {product.name}
             </h1>
-            <p className="mt-1 text-sm text-muted-foreground">
-              Unidad: {product.unit}
-            </p>
+            {product.sku && (
+              <p className="mt-1 text-sm text-muted-foreground">
+                Código: {product.sku}
+              </p>
+            )}
           </div>
 
           {product.description && (
@@ -137,9 +137,7 @@ export function ProductDetail({ slug }: { slug: string }) {
                   {formatPrice(product.price)}
                 </p>
                 <p className="mt-1 text-sm text-muted-foreground">
-                  {product.stock > 0
-                    ? `${product.stock} en stock`
-                    : 'Sin stock'}
+                  {product.inStock ? 'Disponible' : 'Sin stock'}
                 </p>
                 <div className="mt-4 flex items-center gap-3">
                   <div className="flex items-center gap-2">
@@ -166,7 +164,7 @@ export function ProductDetail({ slug }: { slug: string }) {
                   <Button
                     className="flex-1 rounded-full"
                     onClick={handleAdd}
-                    disabled={product.stock <= 0}
+                    disabled={!product.inStock}
                   >
                     {added ? (
                       <Check className="size-4" />
@@ -191,10 +189,6 @@ export function ProductDetail({ slug }: { slug: string }) {
               </>
             )}
           </div>
-
-          {product.sku && (
-            <p className="text-xs text-muted-foreground">SKU: {product.sku}</p>
-          )}
         </div>
       </div>
     </div>

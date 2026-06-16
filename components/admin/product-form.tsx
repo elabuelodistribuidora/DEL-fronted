@@ -7,30 +7,23 @@ import { ArrowLeft, Loader2, Upload, Check } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
+import { SearchableSelect } from '@/components/ui/searchable-select'
 import { Checkbox } from '@/components/ui/checkbox'
 import { productsService } from '@/services/products.service'
 import { categoriasService } from '@/services/categorias.service'
-import { clientesService } from '@/services/clientes.service'
+import { marcasService } from '@/services/marcas.service'
 import { uploadService } from '@/services/upload.service'
-import type { Categoria, Cliente } from '@/types/product'
+import type { Categoria, Marca } from '@/types/product'
 
 type FormState = {
   name: string
   description: string
-  brand: string
-  unit: string
   sku: string
   price: string
-  stock: string
   categoriaId: string
-  clienteId: string
+  marcaId: string
+  inStock: boolean
+  hidden: boolean
   featured: boolean
   image: string
 }
@@ -38,13 +31,12 @@ type FormState = {
 const empty: FormState = {
   name: '',
   description: '',
-  brand: '',
-  unit: '',
   sku: '',
   price: '',
-  stock: '0',
   categoriaId: '',
-  clienteId: '',
+  marcaId: '',
+  inStock: true,
+  hidden: false,
   featured: false,
   image: '',
 }
@@ -54,15 +46,15 @@ export function ProductForm({ id }: { id: string }) {
   const router = useRouter()
   const [form, setForm] = useState<FormState>(empty)
   const [categorias, setCategorias] = useState<Categoria[]>([])
-  const [clientes, setClientes] = useState<Cliente[]>([])
+  const [marcas, setMarcas] = useState<Marca[]>([])
   const [loading, setLoading] = useState(!isNew)
   const [saving, setSaving] = useState(false)
   const [uploading, setUploading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    categoriasService.list().then(setCategorias).catch(() => {})
-    clientesService.list().then(setClientes).catch(() => {})
+    categoriasService.list(true).then(setCategorias).catch(() => {})
+    marcasService.list(true).then(setMarcas).catch(() => {})
     if (!isNew) {
       productsService
         .getOne(id)
@@ -70,13 +62,12 @@ export function ProductForm({ id }: { id: string }) {
           setForm({
             name: p.name,
             description: p.description ?? '',
-            brand: p.brand,
-            unit: p.unit,
             sku: p.sku ?? '',
             price: String(p.price),
-            stock: String(p.stock),
             categoriaId: p.categoriaId,
-            clienteId: p.clienteId ?? '',
+            marcaId: p.marcaId ?? '',
+            inStock: Boolean(p.inStock),
+            hidden: Boolean(p.hidden),
             featured: Boolean(p.featured),
             image: p.image ?? '',
           }),
@@ -98,7 +89,7 @@ export function ProductForm({ id }: { id: string }) {
       set('image', key)
     } catch {
       setError(
-        'No se pudo subir la imagen (¿S3 configurado en el backend?). Podés guardar sin imagen por ahora.',
+        'No se pudo subir la imagen (¿S3 configurado?). Podés guardar sin imagen por ahora.',
       )
     } finally {
       setUploading(false)
@@ -112,13 +103,12 @@ export function ProductForm({ id }: { id: string }) {
     const payload = {
       name: form.name,
       description: form.description || undefined,
-      brand: form.brand,
-      unit: form.unit,
       sku: form.sku || undefined,
       price: Number(form.price),
-      stock: Number(form.stock),
       categoriaId: form.categoriaId,
-      clienteId: form.clienteId || null,
+      marcaId: form.marcaId || null,
+      inStock: form.inStock,
+      hidden: form.hidden,
       featured: form.featured,
       image: form.image || undefined,
     }
@@ -174,7 +164,7 @@ export function ProductForm({ id }: { id: string }) {
               required
               value={form.name}
               onChange={(e) => set('name', e.target.value)}
-              placeholder="Nombre del producto"
+              placeholder="Nombre del producto (incluye la unidad/medida)"
             />
           </div>
           <div className="space-y-2 sm:col-span-2">
@@ -188,67 +178,31 @@ export function ProductForm({ id }: { id: string }) {
 
           <div className="space-y-2">
             <Label>Categoría</Label>
-            <Select
+            <SearchableSelect
               value={form.categoriaId}
-              onValueChange={(v) => set('categoriaId', v)}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Seleccioná una categoría" />
-              </SelectTrigger>
-              <SelectContent>
-                {categorias.map((c) => (
-                  <SelectItem key={c.id} value={c.id}>
-                    {c.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+              onChange={(v) => set('categoriaId', v)}
+              options={categorias.map((c) => ({ value: c.id, label: c.name }))}
+              placeholder="Seleccioná una categoría"
+            />
           </div>
 
           <div className="space-y-2">
-            <Label>Proveedor (opcional)</Label>
-            <Select
-              value={form.clienteId || 'none'}
-              onValueChange={(v) => set('clienteId', v === 'none' ? '' : v)}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Sin proveedor" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="none">Sin proveedor</SelectItem>
-                {clientes.map((c) => (
-                  <SelectItem key={c.id} value={c.id}>
-                    {c.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <Label>Marca (opcional)</Label>
+            <SearchableSelect
+              value={form.marcaId}
+              onChange={(v) => set('marcaId', v)}
+              options={marcas.map((m) => ({ value: m.id, label: m.name }))}
+              placeholder="Sin marca"
+              clearLabel="Sin marca"
+            />
           </div>
 
           <div className="space-y-2">
-            <Label>Marca</Label>
-            <Input
-              required
-              value={form.brand}
-              onChange={(e) => set('brand', e.target.value)}
-              placeholder="Laffitté, MultiMax..."
-            />
-          </div>
-          <div className="space-y-2">
-            <Label>Unidad</Label>
-            <Input
-              required
-              value={form.unit}
-              onChange={(e) => set('unit', e.target.value)}
-              placeholder="Pomo 500 ml, Set x 12..."
-            />
-          </div>
-          <div className="space-y-2">
-            <Label>SKU</Label>
+            <Label>Código</Label>
             <Input
               value={form.sku}
               onChange={(e) => set('sku', e.target.value)}
-              placeholder="LAF-PA-500"
+              placeholder="15601"
             />
           </div>
           <div className="space-y-2">
@@ -260,20 +214,11 @@ export function ProductForm({ id }: { id: string }) {
               step="0.01"
               value={form.price}
               onChange={(e) => set('price', e.target.value)}
-              placeholder="4500"
-            />
-          </div>
-          <div className="space-y-2">
-            <Label>Stock</Label>
-            <Input
-              type="number"
-              min="0"
-              value={form.stock}
-              onChange={(e) => set('stock', e.target.value)}
+              placeholder="1109.88"
             />
           </div>
 
-          <div className="space-y-2">
+          <div className="space-y-2 sm:col-span-2">
             <Label>Imagen</Label>
             <div className="flex items-center gap-3">
               <label className="inline-flex cursor-pointer items-center gap-2 rounded-md border border-border px-3 py-2 text-sm hover:bg-muted">
@@ -295,14 +240,35 @@ export function ProductForm({ id }: { id: string }) {
             </div>
           </div>
 
-          <div className="flex items-center gap-2 sm:col-span-2">
+          {/* Flags */}
+          <div className="flex items-center gap-2">
+            <Checkbox
+              id="inStock"
+              checked={form.inStock}
+              onCheckedChange={(v) => set('inStock', Boolean(v))}
+            />
+            <Label htmlFor="inStock" className="cursor-pointer font-normal">
+              Hay stock
+            </Label>
+          </div>
+          <div className="flex items-center gap-2">
             <Checkbox
               id="featured"
               checked={form.featured}
               onCheckedChange={(v) => set('featured', Boolean(v))}
             />
             <Label htmlFor="featured" className="cursor-pointer font-normal">
-              Producto destacado (aparece en la home)
+              Destacado (aparece en la home)
+            </Label>
+          </div>
+          <div className="flex items-center gap-2 sm:col-span-2">
+            <Checkbox
+              id="hidden"
+              checked={form.hidden}
+              onCheckedChange={(v) => set('hidden', Boolean(v))}
+            />
+            <Label htmlFor="hidden" className="cursor-pointer font-normal">
+              Ocultar (no visible para los clientes)
             </Label>
           </div>
         </div>

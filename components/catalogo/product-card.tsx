@@ -21,10 +21,11 @@ export function ProductCard({ product }: { product: Product }) {
       {
         id: product.id,
         name: product.name,
-        brand: product.brand,
-        unit: product.unit,
+        slug: product.slug,
+        sku: product.sku,
         image: product.image,
         imageUrl: product.imageUrl,
+        inStock: product.inStock,
         price: product.price,
       },
       1,
@@ -50,9 +51,16 @@ export function ProductCard({ product }: { product: Product }) {
         ) : (
           <Package className="size-14 text-muted-foreground/30" />
         )}
-        <Badge className="absolute left-3 top-3 bg-background/90 text-foreground shadow-sm hover:bg-background/90">
-          {product.brand}
-        </Badge>
+        {product.marca && (
+          <Badge className="absolute left-3 top-3 bg-background/90 text-foreground shadow-sm hover:bg-background/90">
+            {product.marca.name}
+          </Badge>
+        )}
+        {!product.inStock && (
+          <Badge className="absolute right-3 top-3 bg-destructive/90 text-white hover:bg-destructive/90">
+            Sin stock
+          </Badge>
+        )}
       </Link>
 
       <div className="flex flex-1 flex-col gap-3 p-4">
@@ -63,7 +71,9 @@ export function ProductCard({ product }: { product: Product }) {
           <h3 className="text-pretty font-heading text-sm font-semibold leading-snug text-foreground">
             {product.name}
           </h3>
-          <p className="text-xs text-muted-foreground">{product.unit}</p>
+          {product.sku && (
+            <p className="text-xs text-muted-foreground">Cód. {product.sku}</p>
+          )}
         </Link>
 
         <div className="flex items-center justify-between gap-2 border-t border-border pt-3">
@@ -76,14 +86,14 @@ export function ProductCard({ product }: { product: Product }) {
                 size="sm"
                 className="rounded-full text-xs"
                 onClick={handleAdd}
-                disabled={product.stock <= 0}
+                disabled={!product.inStock}
               >
                 {added ? (
                   <Check className="size-3.5" />
                 ) : (
                   <ShoppingCart className="size-3.5" />
                 )}
-                {product.stock <= 0 ? 'Sin stock' : added ? 'Agregado' : 'Agregar'}
+                {!product.inStock ? 'Sin stock' : added ? 'Agregado' : 'Agregar'}
               </Button>
             </>
           ) : (

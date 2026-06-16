@@ -5,6 +5,7 @@ import { Hero } from '@/components/home/hero'
 import { Features } from '@/components/home/features'
 import { Brands } from '@/components/home/brands'
 import { FeaturedProducts } from '@/components/home/featured-products'
+import { CatalogosSection } from '@/components/home/catalogos-section'
 import { PaymentCta } from '@/components/home/payment-cta'
 
 export default function HomePage() {
@@ -16,6 +17,7 @@ export default function HomePage() {
         <Features />
         <Brands />
         <FeaturedProducts />
+        <CatalogosSection />
         <PaymentCta />
       </main>
       <SiteFooter />

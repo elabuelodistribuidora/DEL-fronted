@@ -76,11 +76,26 @@ export default function AdminProductosPage() {
     load()
   }, [load])
 
+  const handleToggleActive = async (p: Product) => {
+    setBusyId(p.id)
+    try {
+      await productsService.update(p.id, { active: !p.active })
+      await load()
+    } finally {
+      setBusyId(null)
+    }
+  }
+
   const handleDelete = async (id: string, name: string) => {
-    if (!confirm(`¿Desactivar "${name}"? Podés reactivarlo editándolo.`)) return
+    if (
+      !confirm(
+        `¿Eliminar "${name}" de forma permanente? Esta acción no se puede deshacer.`,
+      )
+    )
+      return
     setBusyId(id)
     try {
-      await productsService.remove(id)
+      await productsService.hardDelete(id)
       await load()
     } finally {
       setBusyId(null)
@@ -256,13 +271,20 @@ export default function AdminProductosPage() {
                     </span>
                   </td>
                   <td>
-                    <div className="flex gap-3">
+                    <div className="flex items-center gap-3">
                       <Link
                         href={`/admin/productos/${p.id}`}
                         className="text-xs text-primary hover:underline"
                       >
                         Editar
                       </Link>
+                      <button
+                        onClick={() => handleToggleActive(p)}
+                        disabled={busyId === p.id}
+                        className="text-xs text-muted-foreground hover:underline disabled:opacity-50"
+                      >
+                        {p.active ? 'Desactivar' : 'Activar'}
+                      </button>
                       <button
                         onClick={() => handleDelete(p.id, p.name)}
                         disabled={busyId === p.id}
@@ -271,7 +293,7 @@ export default function AdminProductosPage() {
                         {busyId === p.id && (
                           <Loader2 className="size-3 animate-spin" />
                         )}
-                        Desactivar
+                        Eliminar
                       </button>
                     </div>
                   </td>

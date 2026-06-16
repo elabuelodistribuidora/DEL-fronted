@@ -6,6 +6,7 @@ import {
   Users,
   Tag,
   BadgeCheck,
+  BookOpen,
   BarChart2,
   Settings,
 } from 'lucide-react'
@@ -19,6 +20,7 @@ const navItems = [
   { href: '/admin/ordenes', label: 'Órdenes', icon: ShoppingBag },
   { href: '/admin/categorias', label: 'Categorías', icon: Tag },
   { href: '/admin/marcas', label: 'Marcas', icon: BadgeCheck },
+  { href: '/admin/catalogos', label: 'Catálogos', icon: BookOpen },
   { href: '/admin/clientes', label: 'Clientes', icon: Users },
   { href: '/admin/reportes', label: 'Reportes', icon: BarChart2 },
   { href: '/admin/configuracion', label: 'Configuración', icon: Settings },

@@ -3,6 +3,7 @@ export type UserRole = 'customer' | 'admin'
 export type User = {
   id: string
   name: string
+  businessName?: string | null
   email: string
   role: UserRole
   active?: boolean

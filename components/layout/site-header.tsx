@@ -20,6 +20,7 @@ import { useAuth } from '@/hooks/useAuth'
 const links = [
   { href: '/', label: 'Inicio' },
   { href: '/catalogo', label: 'Productos' },
+  { href: '/catalogos', label: 'Catálogos' },
   { href: '/nosotros', label: 'Nosotros' },
   { href: '/contacto', label: 'Contacto' },
 ]
@@ -31,6 +32,7 @@ export function SiteHeader() {
   const [search, setSearch] = useState('')
   const { itemCount } = useCart()
   const { isAuthenticated, isAdmin, user, logout } = useAuth()
+  const isCustomer = user?.role === 'customer'
 
   const submitSearch = (e: React.FormEvent) => {
     e.preventDefault()
@@ -92,16 +94,18 @@ export function SiteHeader() {
         </form>
 
         <div className="flex items-center gap-1">
-          <Button variant="ghost" size="icon" className="relative" asChild>
-            <Link href="/carrito" aria-label="Carrito">
-              <ShoppingCart className="size-5" />
-              {itemCount > 0 && (
-                <span className="absolute -right-0.5 -top-0.5 flex size-4 items-center justify-center rounded-full bg-accent text-[0.6rem] font-bold text-accent-foreground">
-                  {itemCount}
-                </span>
-              )}
-            </Link>
-          </Button>
+          {isCustomer && (
+            <Button variant="ghost" size="icon" className="relative" asChild>
+              <Link href="/carrito" aria-label="Carrito">
+                <ShoppingCart className="size-5" />
+                {itemCount > 0 && (
+                  <span className="absolute -right-0.5 -top-0.5 flex size-4 items-center justify-center rounded-full bg-accent text-[0.6rem] font-bold text-accent-foreground">
+                    {itemCount}
+                  </span>
+                )}
+              </Link>
+            </Button>
+          )}
 
           <Button
             variant="ghost"

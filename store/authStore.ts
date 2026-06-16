@@ -4,6 +4,7 @@ import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import type { User } from '@/types/user'
 import { setTokenCookie, clearTokenCookie } from '@/lib/authToken'
+import { useCartStore } from '@/store/cartStore'
 
 type AuthStore = {
   token: string | null
@@ -33,6 +34,8 @@ export const useAuthStore = create<AuthStore>()(
 
       logout: () => {
         clearTokenCookie()
+        // Vacía el carrito al cerrar sesión
+        useCartStore.getState().clearCart()
         set({ token: null, user: null })
       },
 

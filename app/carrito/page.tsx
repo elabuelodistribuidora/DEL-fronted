@@ -96,9 +96,19 @@ export default function CarritoPage() {
                         >
                           <Minus className="size-3" />
                         </Button>
-                        <span className="w-6 text-center text-sm font-medium">
-                          {item.quantity}
-                        </span>
+                        <input
+                          type="number"
+                          min={1}
+                          value={item.quantity}
+                          onChange={(e) => {
+                            const n = parseInt(e.target.value, 10)
+                            if (Number.isInteger(n) && n >= 1) {
+                              updateQuantity(item.product.id, n)
+                            }
+                          }}
+                          className="h-7 w-14 rounded-md border border-border bg-background text-center text-sm font-medium outline-none focus-visible:ring-2 focus-visible:ring-ring/50 [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+                          aria-label="Cantidad"
+                        />
                         <Button
                           variant="outline"
                           size="icon"

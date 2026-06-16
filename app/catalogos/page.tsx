@@ -1,34 +1,26 @@
-import { Suspense } from 'react'
 import { SiteHeader } from '@/components/layout/site-header'
 import { SiteFooter } from '@/components/layout/site-footer'
 import { WhatsappButton } from '@/components/layout/whatsapp-button'
-import { CartBanner } from '@/components/layout/cart-banner'
-import { ProductCatalog } from '@/components/catalogo/product-catalog'
+import { CatalogosSection } from '@/components/home/catalogos-section'
 
-export const metadata = {
-  title: 'Catálogo | Distribuidora de Arte',
-  description: 'Explorá todo nuestro catálogo de insumos de arte al por mayor.',
-}
+export const metadata = { title: 'Catálogos | Distribuidora de Arte' }
 
-export default function CatalogoPage() {
+export default function CatalogosPage() {
   return (
-    <div className="flex min-h-screen flex-col pb-14">
-      <CartBanner />
+    <div className="flex min-h-screen flex-col">
       <SiteHeader />
       <main className="flex-1">
         <div className="border-b border-border bg-muted/40">
           <div className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
             <p className="font-heading text-sm font-semibold uppercase tracking-[0.2em] text-primary">
-              Catálogo
+              Catálogos
             </p>
             <h1 className="mt-1 font-heading text-2xl font-bold text-foreground sm:text-3xl">
-              Todos los productos
+              Nuestros catálogos
             </h1>
           </div>
         </div>
-        <Suspense>
-          <ProductCatalog />
-        </Suspense>
+        <CatalogosSection showEmpty />
       </main>
       <SiteFooter />
       <WhatsappButton />

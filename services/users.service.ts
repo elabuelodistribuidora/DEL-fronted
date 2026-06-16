@@ -19,6 +19,7 @@ export type ClientAddressInput = {
 export type CreateClientPayload = {
   email: string
   name: string
+  businessName?: string
   password: string
   address: ClientAddressInput
 }
@@ -42,7 +43,12 @@ export const usersService = {
 
   updateClient: (
     id: string,
-    payload: { name?: string; active?: boolean; address?: ClientAddressInput },
+    payload: {
+      name?: string
+      businessName?: string
+      active?: boolean
+      address?: ClientAddressInput
+    },
   ) => api.patch<User>(`/users/${id}`, payload),
 
   resetPassword: (id: string, password: string) =>

@@ -31,8 +31,17 @@ export function AccountTabs() {
         String(data.get('password')),
       )
       const callback = searchParams.get('callbackUrl')
-      if (callback) router.push(callback)
-      else router.push(user.role === 'admin' ? '/admin' : '/catalogo')
+      if (user.role === 'admin') {
+        router.push(callback || '/admin')
+      } else {
+        // El cliente siempre va al catálogo, salvo que venga de una página
+        // protegida puntual (no home ni la propia /cuenta).
+        const useful =
+          callback && !['/', '/cuenta', '/login'].includes(callback)
+            ? callback
+            : '/catalogo'
+        router.push(useful)
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'No se pudo iniciar sesión')
       setLoading(false)

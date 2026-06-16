@@ -38,6 +38,7 @@ export default function AdminClientesPage() {
   const [editing, setEditing] = useState<User | null>(null)
   const [email, setEmail] = useState('')
   const [name, setName] = useState('')
+  const [businessName, setBusinessName] = useState('')
   const [password, setPassword] = useState('')
   const [confirm, setConfirm] = useState('')
   const [address, setAddress] = useState<AddressValue>(emptyAddress)
@@ -75,6 +76,7 @@ export default function AdminClientesPage() {
     setEditing(null)
     setEmail('')
     setName('')
+    setBusinessName('')
     setPassword('')
     setConfirm('')
     setAddress(emptyAddress)
@@ -86,6 +88,7 @@ export default function AdminClientesPage() {
     setEditing(u)
     setEmail(u.email)
     setName(u.name)
+    setBusinessName(u.businessName ?? '')
     const a = u.addresses?.[0]
     setAddress(
       a
@@ -132,9 +135,19 @@ export default function AdminClientesPage() {
     setSaving(true)
     try {
       if (editing) {
-        await usersService.updateClient(editing.id, { name, address })
+        await usersService.updateClient(editing.id, {
+          name,
+          businessName: businessName || undefined,
+          address,
+        })
       } else {
-        await usersService.createClient({ email, name, password, address })
+        await usersService.createClient({
+          email,
+          name,
+          businessName: businessName || undefined,
+          password,
+          address,
+        })
       }
       setShowForm(false)
       load()
@@ -198,8 +211,16 @@ export default function AdminClientesPage() {
           <div className="space-y-4">
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-2">
-                <Label>Nombre / Comercio</Label>
+                <Label>Nombre comercial</Label>
                 <Input value={name} onChange={(e) => setName(e.target.value)} />
+              </div>
+              <div className="space-y-2">
+                <Label>Razón social</Label>
+                <Input
+                  value={businessName}
+                  onChange={(e) => setBusinessName(e.target.value)}
+                  placeholder="Pérez SRL"
+                />
               </div>
               <div className="space-y-2">
                 <Label>Email</Label>
@@ -289,7 +310,8 @@ export default function AdminClientesPage() {
           <table className="data-table">
             <thead>
               <tr>
-                <th>Nombre</th>
+                <th>Nombre comercial</th>
+                <th>Razón social</th>
                 <th>Email</th>
                 <th>Ubicación</th>
                 <th>Estado</th>
@@ -302,6 +324,9 @@ export default function AdminClientesPage() {
                 return (
                   <tr key={u.id}>
                     <td className="font-medium">{u.name}</td>
+                    <td className="text-muted-foreground">
+                      {u.businessName || '—'}
+                    </td>
                     <td>{u.email}</td>
                     <td className="text-muted-foreground">
                       {a ? `${a.city}, ${a.province}` : '—'}
@@ -343,7 +368,7 @@ export default function AdminClientesPage() {
               })}
               {clients.length === 0 && (
                 <tr>
-                  <td colSpan={5} className="py-8 text-center text-muted-foreground">
+                  <td colSpan={6} className="py-8 text-center text-muted-foreground">
                     No hay clientes.
                   </td>
                 </tr>

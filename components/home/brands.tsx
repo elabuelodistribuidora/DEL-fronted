@@ -1,17 +1,18 @@
 // Marcas líderes de la home. `logo` es opcional: si está, se muestra la imagen
 // (poné el archivo en /public, ej. '/marcas/omc.png'); si no, se muestra el nombre.
 const brands: { name: string; logo?: string }[] = [
-  { name: 'OMC' },
-  { name: 'Xin Bowen' },
+  { name: 'OMC', logo: '/marcas/omc.png' },
+  { name: 'Xin Bowen', logo: '/marcas/xinbowen.png' },
   { name: 'Camaleon' },
-  { name: 'EQ Artistica' },
-  { name: 'Acuarel' },
+  { name: 'EQ Artistica', logo: '/marcas/eq.png' },
+  { name: 'Acuarel', logo: '/marcas/acuarel.png' },
   { name: 'Gines' },
-  { name: 'Eterna' },
-  { name: 'Casan' },
-  { name: 'Eureka' },
-  { name: 'Alba' },
-  { name: 'Degas Plus' },
+  { name: 'Eterna', logo: '/marcas/eterna.png' },
+  { name: 'Casan', logo: '/marcas/casan.png' },
+  { name: 'Eureka', logo: '/marcas/eureka.png' },
+  { name: 'Alba', logo: '/marcas/alba.png' },
+  { name: 'Degas Plus', logo: '/marcas/degasplus.png' },
+  { name: 'Van Gogh', logo: '/marcas/vangogh.png' },
 ]
 
 export function Brands() {

@@ -84,7 +84,7 @@ export function ProductCatalog() {
             clearLabel="Todas las marcas"
           />
           <Select
-            value={filters.sort ?? 'recent'}
+            value={filters.sort ?? 'name'}
             onValueChange={(v) =>
               updateFilter('sort', v as ProductFilters['sort'])
             }

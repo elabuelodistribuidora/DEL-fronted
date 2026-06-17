@@ -299,8 +299,11 @@ export default function CheckoutPage() {
             <div className="flex flex-col items-center py-10 text-center">
               <CheckCircle2 className="size-16 text-green-500" />
               <h2 className="mt-4 font-heading text-2xl font-bold text-foreground">
-                ¡Tu orden #{order.number} fue creada!
+                ¡Tu orden fue creada!
               </h2>
+              <p className="mt-2 break-all font-mono text-sm text-muted-foreground">
+                N° de orden: #{order.id}
+              </p>
               <p className="mt-2 max-w-md text-muted-foreground">
                 Será procesada dentro de las <strong>48 hs hábiles</strong> y
                 recibirás un email con los detalles del pedido.

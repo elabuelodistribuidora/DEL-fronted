@@ -57,8 +57,8 @@ export default function PedidosPage() {
                   className="flex items-center justify-between rounded-xl border border-border bg-card p-5 transition-colors hover:border-primary/30"
                 >
                   <div>
-                    <p className="font-heading font-semibold text-foreground">
-                      Pedido #{order.number}
+                    <p className="break-all font-heading text-sm font-semibold text-foreground">
+                      Pedido #{order.id}
                     </p>
                     <p className="mt-0.5 text-sm text-muted-foreground">
                       {order.items.length} producto

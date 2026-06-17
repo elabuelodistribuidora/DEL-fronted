@@ -101,7 +101,7 @@ export default function AdminDashboard() {
                 >
                   <div>
                     <p className="font-medium text-foreground">
-                      #{o.number} — {o.user.name}
+                      #{o.id} — {o.user.name}
                     </p>
                     <p className="text-xs text-muted-foreground">
                       {formatDate(o.createdAt)}

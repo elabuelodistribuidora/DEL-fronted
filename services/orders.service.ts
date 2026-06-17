@@ -50,4 +50,6 @@ export const ordersService = {
 
   updateStatus: (id: string, status: OrderStatus) =>
     api.patch<Order>(`/orders/${id}/status`, { status }),
+
+  remove: (id: string) => api.delete<{ deleted: boolean }>(`/orders/${id}`),
 }

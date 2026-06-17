@@ -2,46 +2,66 @@
 
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
-import { ArrowLeft, Loader2, MapPin, Download } from 'lucide-react'
+import { useRouter } from 'next/navigation'
+import { ArrowLeft, Loader2, MapPin, Download, Trash2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { ordersService } from '@/services/orders.service'
 import { ORDER_STATUS_LABELS, type Order, type OrderStatus } from '@/types/order'
 import { formatPrice, formatDateTime } from '@/utils/formatters'
 
-// Transiciones válidas (igual que el backend)
-const NEXT_STATES: Record<OrderStatus, OrderStatus[]> = {
-  pending: ['processing', 'cancelled'],
-  processing: ['shipped', 'cancelled'],
-  shipped: ['delivered'],
-  delivered: [],
-  cancelled: [],
-}
+const ALL_STATUSES = Object.keys(ORDER_STATUS_LABELS) as OrderStatus[]
 
 export function AdminOrderDetail({ id }: { id: string }) {
+  const router = useRouter()
   const [order, setOrder] = useState<Order | null>(null)
   const [loading, setLoading] = useState(true)
-  const [updatingStatus, setUpdatingStatus] = useState<OrderStatus | null>(null)
+  const [statusDraft, setStatusDraft] = useState<OrderStatus>('pending')
+  const [saving, setSaving] = useState(false)
+  const [deleting, setDeleting] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
     ordersService
       .getOne(id)
-      .then(setOrder)
+      .then((o) => {
+        setOrder(o)
+        if (o) setStatusDraft(o.status)
+      })
       .catch(() => setOrder(null))
       .finally(() => setLoading(false))
   }, [id])
 
-  const changeStatus = async (status: OrderStatus) => {
+  const saveStatus = async () => {
     if (!order) return
-    setUpdatingStatus(status)
+    setSaving(true)
     setError(null)
     try {
-      const updated = await ordersService.updateStatus(order.id, status)
+      const updated = await ordersService.updateStatus(order.id, statusDraft)
       setOrder(updated)
+      setStatusDraft(updated.status)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'No se pudo actualizar')
     } finally {
-      setUpdatingStatus(null)
+      setSaving(false)
+    }
+  }
+
+  const deleteOrder = async () => {
+    if (!order) return
+    if (
+      !window.confirm(
+        '¿Eliminar esta orden? Esta acción no se puede deshacer.',
+      )
+    )
+      return
+    setDeleting(true)
+    setError(null)
+    try {
+      await ordersService.remove(order.id)
+      router.push('/admin/ordenes')
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'No se pudo eliminar')
+      setDeleting(false)
     }
   }
 
@@ -68,7 +88,6 @@ export function AdminOrderDetail({ id }: { id: string }) {
   }
 
   const addr = order.shippingAddress
-  const nextStates = NEXT_STATES[order.status]
 
   return (
     <div className="space-y-6">
@@ -79,21 +98,33 @@ export function AdminOrderDetail({ id }: { id: string }) {
         >
           <ArrowLeft className="size-4" /> Órdenes
         </Link>
-        <Button
-          variant="outline"
-          size="sm"
-          className="rounded-full"
-          onClick={() => ordersService.downloadPdf(order.id, order.number)}
-        >
-          <Download className="size-4" />
-          PDF
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            className="rounded-full"
+            onClick={() => ordersService.downloadPdf(order.id, order.number)}
+          >
+            <Download className="size-4" />
+            PDF
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            className="rounded-full border-destructive/40 text-destructive hover:bg-destructive/10 hover:text-destructive"
+            loading={deleting}
+            onClick={deleteOrder}
+          >
+            <Trash2 className="size-4" />
+            Eliminar
+          </Button>
+        </div>
       </div>
 
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
-          <h1 className="font-heading text-2xl font-bold text-foreground">
-            Orden #{order.number}
+          <h1 className="break-all font-heading text-xl font-bold text-foreground">
+            Orden #{order.id}
           </h1>
           <p className="mt-1 text-sm text-muted-foreground">
             {order.user?.name} · {order.user?.email} ·{' '}
@@ -116,26 +147,31 @@ export function AdminOrderDetail({ id }: { id: string }) {
         <h2 className="font-heading text-base font-semibold text-foreground">
           Cambiar estado
         </h2>
-        {nextStates.length === 0 ? (
-          <p className="mt-3 text-sm text-muted-foreground">
-            Esta orden está en un estado final.
-          </p>
-        ) : (
-          <div className="mt-4 flex flex-wrap gap-2">
-            {nextStates.map((s) => (
-              <Button
-                key={s}
-                variant={s === 'cancelled' ? 'outline' : 'default'}
-                className="rounded-full"
-                loading={updatingStatus === s}
-                disabled={updatingStatus !== null && updatingStatus !== s}
-                onClick={() => changeStatus(s)}
-              >
-                Marcar como {ORDER_STATUS_LABELS[s].toLowerCase()}
-              </Button>
+        <p className="mt-1 text-sm text-muted-foreground">
+          Podés establecer cualquier estado y guardar.
+        </p>
+        <div className="mt-4 flex flex-wrap items-center gap-3">
+          <select
+            value={statusDraft}
+            onChange={(e) => setStatusDraft(e.target.value as OrderStatus)}
+            aria-label="Estado de la orden"
+            className="h-10 rounded-lg border border-input bg-background px-3 text-sm"
+          >
+            {ALL_STATUSES.map((s) => (
+              <option key={s} value={s}>
+                {ORDER_STATUS_LABELS[s]}
+              </option>
             ))}
-          </div>
-        )}
+          </select>
+          <Button
+            className="rounded-full"
+            loading={saving}
+            disabled={statusDraft === order.status}
+            onClick={saveStatus}
+          >
+            Guardar estado
+          </Button>
+        </div>
       </div>
 
       {/* Items */}

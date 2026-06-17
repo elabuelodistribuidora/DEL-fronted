@@ -66,6 +66,19 @@ export function SiteHeader() {
               </Link>
             )
           })}
+          {isCustomer && (
+            <Link
+              href="/cuenta/pedidos"
+              className={cn(
+                'rounded-md px-3 py-2 text-sm font-medium transition-colors',
+                pathname.startsWith('/cuenta/pedidos')
+                  ? 'text-primary'
+                  : 'text-muted-foreground hover:text-foreground',
+              )}
+            >
+              Mis pedidos
+            </Link>
+          )}
           {isAdmin && (
             <Link
               href="/admin"
@@ -107,20 +120,25 @@ export function SiteHeader() {
             </Button>
           )}
 
-          <Button
-            variant="ghost"
-            size="icon"
-            asChild
-            className="hidden sm:inline-flex"
-          >
-            <Link
-              href={isAuthenticated ? '/cuenta/pedidos' : '/cuenta'}
-              aria-label="Mi cuenta"
-              title={user ? user.name : 'Mi cuenta'}
+          {isAuthenticated ? (
+            <Button
+              variant="outline"
+              asChild
+              className="hidden rounded-full sm:inline-flex"
             >
-              <User className="size-5" />
-            </Link>
-          </Button>
+              <Link href="/cuenta/pedidos" title={user?.name ?? 'Mi cuenta'}>
+                <User className="size-4" />
+                Mi cuenta
+              </Link>
+            </Button>
+          ) : (
+            <Button asChild className="rounded-full">
+              <Link href="/cuenta">
+                <User className="size-4" />
+                Ingresar
+              </Link>
+            </Button>
+          )}
 
           {isAuthenticated && (
             <Button
@@ -168,6 +186,15 @@ export function SiteHeader() {
                     className="rounded-md px-3 py-2.5 text-base font-medium text-foreground hover:bg-muted"
                   >
                     Panel admin
+                  </Link>
+                )}
+                {isCustomer && (
+                  <Link
+                    href="/cuenta/pedidos"
+                    onClick={() => setOpen(false)}
+                    className="rounded-md px-3 py-2.5 text-base font-medium text-foreground hover:bg-muted"
+                  >
+                    Mis pedidos
                   </Link>
                 )}
                 <Link

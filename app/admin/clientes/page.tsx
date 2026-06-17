@@ -6,6 +6,7 @@ import {
   Loader2,
   Pencil,
   KeyRound,
+  Trash2,
   X,
   Search,
   ChevronLeft,
@@ -360,6 +361,29 @@ export default function AdminClientesPage() {
                           className="inline-flex items-center gap-1 text-xs text-amber-700 hover:underline"
                         >
                           <KeyRound className="size-3" /> Contraseña
+                        </button>
+                        <button
+                          onClick={() => {
+                            if (
+                              window.confirm(
+                                `¿Eliminar al cliente "${u.name}"? Se borrarán también sus órdenes. Esta acción no se puede deshacer.`,
+                              )
+                            ) {
+                              usersService
+                                .remove(u.id)
+                                .then(load)
+                                .catch((e) =>
+                                  setError(
+                                    e instanceof Error
+                                      ? e.message
+                                      : 'No se pudo eliminar',
+                                  ),
+                                )
+                            }
+                          }}
+                          className="inline-flex items-center gap-1 text-xs text-destructive hover:underline"
+                        >
+                          <Trash2 className="size-3" /> Eliminar
                         </button>
                       </div>
                     </td>

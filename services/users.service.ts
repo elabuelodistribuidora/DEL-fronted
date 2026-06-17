@@ -56,4 +56,6 @@ export const usersService = {
 
   setActive: (id: string, active: boolean) =>
     api.patch<User>(`/users/${id}/active`, { active }),
+
+  remove: (id: string) => api.delete<{ deleted: boolean }>(`/users/${id}`),
 }

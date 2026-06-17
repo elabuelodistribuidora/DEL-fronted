@@ -69,8 +69,8 @@ export function OrderDetail({ id }: { id: string }) {
 
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
-          <h1 className="font-heading text-2xl font-bold text-foreground">
-            Pedido #{order.number}
+          <h1 className="break-all font-heading text-xl font-bold text-foreground">
+            Pedido #{order.id}
           </h1>
           <p className="mt-1 text-sm text-muted-foreground">
             Realizado el {formatDateTime(order.createdAt)}

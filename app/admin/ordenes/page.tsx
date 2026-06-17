@@ -99,7 +99,7 @@ export default function AdminOrdenesPage() {
             <tbody>
               {orders.map((o) => (
                 <tr key={o.id}>
-                  <td className="font-mono text-sm font-medium">#{o.number}</td>
+                  <td className="font-mono text-xs font-medium">#{o.id}</td>
                   <td>{o.user?.name ?? '—'}</td>
                   <td>
                     <span className={`status-badge status-badge--${o.status}`}>

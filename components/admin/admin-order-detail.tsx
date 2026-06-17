@@ -18,6 +18,8 @@ export function AdminOrderDetail({ id }: { id: string }) {
   const [statusDraft, setStatusDraft] = useState<OrderStatus>('pending')
   const [saving, setSaving] = useState(false)
   const [deleting, setDeleting] = useState(false)
+  const [discountDraft, setDiscountDraft] = useState('')
+  const [savingDiscount, setSavingDiscount] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
@@ -25,7 +27,10 @@ export function AdminOrderDetail({ id }: { id: string }) {
       .getOne(id)
       .then((o) => {
         setOrder(o)
-        if (o) setStatusDraft(o.status)
+        if (o) {
+          setStatusDraft(o.status)
+          setDiscountDraft(o.discount ? String(o.discount) : '')
+        }
       })
       .catch(() => setOrder(null))
       .finally(() => setLoading(false))
@@ -43,6 +48,26 @@ export function AdminOrderDetail({ id }: { id: string }) {
       setError(err instanceof Error ? err.message : 'No se pudo actualizar')
     } finally {
       setSaving(false)
+    }
+  }
+
+  const saveDiscount = async () => {
+    if (!order) return
+    setSavingDiscount(true)
+    setError(null)
+    try {
+      const updated = await ordersService.setDiscount(
+        order.id,
+        Number(discountDraft) || 0,
+      )
+      setOrder(updated)
+      setDiscountDraft(updated.discount ? String(updated.discount) : '')
+    } catch (err) {
+      setError(
+        err instanceof Error ? err.message : 'No se pudo aplicar el descuento',
+      )
+    } finally {
+      setSavingDiscount(false)
     }
   }
 
@@ -174,6 +199,42 @@ export function AdminOrderDetail({ id }: { id: string }) {
         </div>
       </div>
 
+      {/* Descuento */}
+      <div className="rounded-xl border border-border bg-card p-6">
+        <h2 className="font-heading text-base font-semibold text-foreground">
+          Descuento
+        </h2>
+        <p className="mt-1 text-sm text-muted-foreground">
+          Aplicá un % de descuento opcional. Se refleja en el total.
+        </p>
+        <div className="mt-4 flex flex-wrap items-center gap-3">
+          <div className="relative">
+            <input
+              type="number"
+              min="0"
+              max="100"
+              step="1"
+              value={discountDraft}
+              onChange={(e) => setDiscountDraft(e.target.value)}
+              placeholder="0"
+              aria-label="Porcentaje de descuento"
+              className="h-10 w-28 rounded-lg border border-input bg-background px-3 pr-7 text-sm"
+            />
+            <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">
+              %
+            </span>
+          </div>
+          <Button
+            variant="outline"
+            className="rounded-full"
+            loading={savingDiscount}
+            onClick={saveDiscount}
+          >
+            Aplicar descuento
+          </Button>
+        </div>
+      </div>
+
       {/* Items */}
       <div className="rounded-xl border border-border bg-card p-6">
         <h2 className="font-heading text-base font-semibold text-foreground">
@@ -198,9 +259,23 @@ export function AdminOrderDetail({ id }: { id: string }) {
             </div>
           ))}
         </div>
-        <div className="mt-4 flex justify-between border-t border-border pt-4 font-heading font-bold">
-          <span>Total</span>
-          <span>{formatPrice(order.total)}</span>
+        <div className="mt-4 space-y-1 border-t border-border pt-4">
+          {order.discount && order.discount > 0 ? (
+            <>
+              <div className="flex justify-between text-sm text-muted-foreground">
+                <span>Subtotal</span>
+                <span>{formatPrice(order.subtotal ?? order.total)}</span>
+              </div>
+              <div className="flex justify-between text-sm text-muted-foreground">
+                <span>Descuento ({order.discount}%)</span>
+                <span>− {formatPrice((order.subtotal ?? 0) - order.total)}</span>
+              </div>
+            </>
+          ) : null}
+          <div className="flex justify-between font-heading font-bold">
+            <span>Total</span>
+            <span>{formatPrice(order.total)}</span>
+          </div>
         </div>
       </div>
 

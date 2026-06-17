@@ -35,6 +35,8 @@ export type Order = {
   status: OrderStatus
   items: OrderItem[]
   shippingAddress: ShippingAddress
+  subtotal?: number
+  discount?: number
   total: number
   notes?: string | null
   createdAt: string

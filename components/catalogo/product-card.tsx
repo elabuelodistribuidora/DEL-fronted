@@ -16,6 +16,9 @@ export function ProductCard({ product }: { product: Product }) {
   const { addItem } = useCart()
   const [added, setAdded] = useState(false)
 
+  const onSale = Boolean(product.onSale && product.salePrice != null)
+  const effectivePrice = onSale ? (product.salePrice as number) : product.price
+
   const handleAdd = () => {
     addItem(
       {
@@ -26,7 +29,7 @@ export function ProductCard({ product }: { product: Product }) {
         image: product.image,
         imageUrl: product.imageUrl,
         inStock: product.inStock,
-        price: product.price,
+        price: effectivePrice,
       },
       1,
     )
@@ -51,11 +54,18 @@ export function ProductCard({ product }: { product: Product }) {
         ) : (
           <Package className="size-14 text-muted-foreground/30" />
         )}
-        {product.marca && (
-          <Badge className="absolute left-3 top-3 bg-background/90 text-foreground shadow-sm hover:bg-background/90">
-            {product.marca.name}
-          </Badge>
-        )}
+        <div className="absolute left-3 top-3 flex flex-col items-start gap-1.5">
+          {onSale && (
+            <Badge className="bg-yellow-400 font-bold text-yellow-950 shadow-sm hover:bg-yellow-400">
+              OFERTA
+            </Badge>
+          )}
+          {product.marca && (
+            <Badge className="bg-background/90 text-foreground shadow-sm hover:bg-background/90">
+              {product.marca.name}
+            </Badge>
+          )}
+        </div>
         {!product.inStock && (
           <Badge className="absolute right-3 top-3 bg-destructive/90 text-white hover:bg-destructive/90">
             Sin stock
@@ -79,9 +89,20 @@ export function ProductCard({ product }: { product: Product }) {
         <div className="flex items-center justify-between gap-2 border-t border-border pt-3">
           {isAuthenticated ? (
             <>
-              <span className="font-heading text-sm font-bold text-foreground">
-                {formatPrice(product.price)}
-              </span>
+              {onSale ? (
+                <span className="flex flex-col leading-tight">
+                  <span className="text-xs text-muted-foreground line-through">
+                    {formatPrice(product.price)}
+                  </span>
+                  <span className="font-heading text-sm font-bold text-primary">
+                    {formatPrice(effectivePrice)}
+                  </span>
+                </span>
+              ) : (
+                <span className="font-heading text-sm font-bold text-foreground">
+                  {formatPrice(product.price)}
+                </span>
+              )}
               <Button
                 size="sm"
                 className="rounded-full text-xs"

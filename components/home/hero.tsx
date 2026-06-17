@@ -38,7 +38,7 @@ export function Hero() {
             </span>
           </h1>
           <p className="max-w-md text-pretty text-base leading-relaxed text-primary-foreground/75 sm:text-lg">
-            Pinturas, pinceles, lienzos y más. Precios competitivos, asesoramiento personalizado y entrega a tu local.
+            Pinturas, pinceles, bastidores y más. Precios competitivos, asesoramiento personalizado y entrega a tu local.
           </p>
           <div className="flex flex-wrap gap-3">
             <Button size="lg" asChild className="rounded-full bg-accent text-accent-foreground hover:bg-accent/90">
@@ -50,9 +50,9 @@ export function Hero() {
           </div>
           <dl className="flex gap-8 pt-2">
             {[
-              { value: '+1200', label: 'Productos' },
+              { value: '+6000', label: 'Productos' },
               { value: '+15', label: 'Marcas líderes' },
-              { value: '10 años', label: 'Trayectoria' },
+              { value: '27 años', label: 'Trayectoria' },
             ].map((stat) => (
               <div key={stat.label}>
                 <dt className="text-2xl font-bold text-accent">{stat.value}</dt>
@@ -86,14 +86,14 @@ export function Hero() {
                 className="object-cover"
               />
               <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/55 to-transparent p-3">
-                <p className="text-sm font-semibold text-white">Materiales profesionales</p>
+                <p className="text-sm font-semibold text-white">Materiales para artistas plásticos</p>
               </div>
             </figure>
 
             <CollageTile
               className="col-span-2 row-span-3"
               icon={<PaintBucket className="size-7" />}
-              title="Pinturas acrílicas"
+              title="Pinturas decorativas"
               subtitle="Desde $1.200 / pomo"
               image="https://loremflickr.com/600/700/acrylic,paint?lock=11"
             />
@@ -109,7 +109,7 @@ export function Hero() {
             <CollageTile
               className="col-span-3 row-span-2"
               icon={<Frame className="size-7" />}
-              title="Lienzos y bastidores"
+              title="Lienzos y bastidores - Cartones entelados"
               subtitle="Todas las medidas"
               image="https://loremflickr.com/800/400/canvas,easel?lock=13"
               row

@@ -19,12 +19,13 @@ export default function NosotrosPage() {
         </div>
         <div className="mx-auto w-full max-w-3xl px-4 py-12 sm:px-6 lg:px-8 space-y-8">
           <p className="text-lg leading-relaxed text-muted-foreground">
-            Somos una distribuidora mayorista de insumos de arte con más de 10 años de experiencia
-            abasteciendo comercios, escuelas y artistas independientes en todo el país.
+            En plena crisis del 2000, una familia de Ituzaingó decidió no quedarse de brazos cruzados. Así nació El Abuelo: el proyecto de crear una de las primeras distribuidoras de productos artísticos, de manualidades y artesanales del país.
           </p>
-          <p className="text-base leading-relaxed text-muted-foreground">
-            Trabajamos con las mejores marcas del mercado y ofrecemos asesoramiento personalizado
-            para ayudarte a elegir los productos que mejor se adaptan a tu negocio.
+          <p className="text-lg leading-relaxed text-muted-foreground">
+            Desde el comienzo apostamos por hacer las cosas distinto. Formamos un equipo de vendedores especializados, organizamos entregas en 48 horas e incluso envíos al interior, siempre trabajando codo a codo con cada comercio minorista para ayudarlos a vender más.
+          </p>
+          <p className="text-lg leading-relaxed text-muted-foreground">
+            Hoy representamos a las marcas más reconocidas del rubro y seguimos buscando lo mismo de siempre: estar al día con las nuevas técnicas, las tendencias del mercado y las herramientas que hacen crecer tu negocio.
           </p>
           <div className="grid gap-6 sm:grid-cols-3">
             {[

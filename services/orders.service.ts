@@ -52,4 +52,7 @@ export const ordersService = {
     api.patch<Order>(`/orders/${id}/status`, { status }),
 
   remove: (id: string) => api.delete<{ deleted: boolean }>(`/orders/${id}`),
+
+  setDiscount: (id: string, discount: number) =>
+    api.patch<Order>(`/orders/${id}/discount`, { discount }),
 }

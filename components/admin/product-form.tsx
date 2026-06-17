@@ -25,6 +25,8 @@ type FormState = {
   inStock: boolean
   hidden: boolean
   featured: boolean
+  onSale: boolean
+  salePrice: string
   image: string
 }
 
@@ -38,6 +40,8 @@ const empty: FormState = {
   inStock: true,
   hidden: false,
   featured: false,
+  onSale: false,
+  salePrice: '',
   image: '',
 }
 
@@ -69,6 +73,8 @@ export function ProductForm({ id }: { id: string }) {
             inStock: Boolean(p.inStock),
             hidden: Boolean(p.hidden),
             featured: Boolean(p.featured),
+            onSale: Boolean(p.onSale),
+            salePrice: p.salePrice != null ? String(p.salePrice) : '',
             image: p.image ?? '',
           }),
         )
@@ -110,6 +116,9 @@ export function ProductForm({ id }: { id: string }) {
       inStock: form.inStock,
       hidden: form.hidden,
       featured: form.featured,
+      onSale: form.onSale,
+      salePrice:
+        form.onSale && form.salePrice ? Number(form.salePrice) : undefined,
       image: form.image || undefined,
     }
     try {
@@ -261,6 +270,30 @@ export function ProductForm({ id }: { id: string }) {
               Destacado (aparece en la home)
             </Label>
           </div>
+          <div className="flex items-center gap-2">
+            <Checkbox
+              id="onSale"
+              checked={form.onSale}
+              onCheckedChange={(v) => set('onSale', Boolean(v))}
+            />
+            <Label htmlFor="onSale" className="cursor-pointer font-normal">
+              En oferta / liquidación
+            </Label>
+          </div>
+          {form.onSale && (
+            <div className="space-y-2 sm:col-span-2">
+              <Label>Precio de oferta</Label>
+              <Input
+                required
+                type="number"
+                min="0"
+                step="0.01"
+                value={form.salePrice}
+                onChange={(e) => set('salePrice', e.target.value)}
+                placeholder="Precio en oferta / liquidación"
+              />
+            </div>
+          )}
           <div className="flex items-center gap-2 sm:col-span-2">
             <Checkbox
               id="hidden"
@@ -277,7 +310,7 @@ export function ProductForm({ id }: { id: string }) {
           type="submit"
           className="rounded-full"
           loading={saving}
-          disabled={!form.categoriaId}
+          disabled={!form.categoriaId || (form.onSale && !form.salePrice)}
         >
           Guardar
         </Button>

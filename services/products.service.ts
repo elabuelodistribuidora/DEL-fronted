@@ -26,6 +26,8 @@ export type ProductInput = {
   images?: string[]
   tags?: string[]
   featured?: boolean
+  onSale?: boolean
+  salePrice?: number
   active?: boolean
   categoriaId: string
   marcaId?: string | null

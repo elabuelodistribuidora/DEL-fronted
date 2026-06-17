@@ -66,6 +66,12 @@ export function SiteHeader() {
               </Link>
             )
           })}
+          <Link
+            href="/ofertas"
+            className="ml-1 inline-flex items-center gap-1 rounded-full bg-yellow-400 px-3 py-1.5 text-sm font-bold text-yellow-950 transition-colors hover:bg-yellow-300"
+          >
+            🔥 Ofertas
+          </Link>
           {isCustomer && (
             <Link
               href="/cuenta/pedidos"
@@ -188,6 +194,13 @@ export function SiteHeader() {
                     Panel admin
                   </Link>
                 )}
+                <Link
+                  href="/ofertas"
+                  onClick={() => setOpen(false)}
+                  className="rounded-md bg-yellow-400 px-3 py-2.5 text-base font-bold text-yellow-950 hover:bg-yellow-300"
+                >
+                  🔥 Ofertas
+                </Link>
                 {isCustomer && (
                   <Link
                     href="/cuenta/pedidos"

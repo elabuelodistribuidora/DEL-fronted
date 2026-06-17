@@ -42,6 +42,8 @@ export type Product = {
   imagesUrls?: (string | null)[]
   tags?: string[]
   featured?: boolean
+  onSale?: boolean
+  salePrice?: number | null
   active?: boolean
   categoriaId: string
   marcaId?: string | null
@@ -59,6 +61,7 @@ export type ProductFilters = {
   categoria?: string // slug de categoría
   marca?: string // slug de marca
   featured?: boolean
+  onSale?: boolean
   inStock?: boolean
   minPrice?: number
   maxPrice?: number

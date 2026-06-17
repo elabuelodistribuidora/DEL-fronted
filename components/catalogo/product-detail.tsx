@@ -59,6 +59,9 @@ export function ProductDetail({ slug }: { slug: string }) {
     )
   }
 
+  const onSale = Boolean(product.onSale && product.salePrice != null)
+  const effectivePrice = onSale ? (product.salePrice as number) : product.price
+
   const handleAdd = () => {
     addItem(
       {
@@ -69,7 +72,7 @@ export function ProductDetail({ slug }: { slug: string }) {
         image: product.image,
         imageUrl: product.imageUrl,
         inStock: product.inStock,
-        price: product.price,
+        price: effectivePrice,
       },
       qty,
     )
@@ -107,6 +110,11 @@ export function ProductDetail({ slug }: { slug: string }) {
         <div className="space-y-6">
           <div>
             <div className="flex flex-wrap items-center gap-2">
+              {onSale && (
+                <Badge className="bg-yellow-400 font-bold text-yellow-950 hover:bg-yellow-400">
+                  OFERTA
+                </Badge>
+              )}
               {product.categoria && (
                 <Badge variant="secondary">{product.categoria.name}</Badge>
               )}
@@ -133,9 +141,20 @@ export function ProductDetail({ slug }: { slug: string }) {
           <div className="rounded-xl border border-border bg-card p-5">
             {isAuthenticated ? (
               <>
-                <p className="font-heading text-3xl font-bold text-foreground">
-                  {formatPrice(product.price)}
-                </p>
+                {onSale ? (
+                  <div>
+                    <p className="text-base text-muted-foreground line-through">
+                      {formatPrice(product.price)}
+                    </p>
+                    <p className="font-heading text-3xl font-bold text-primary">
+                      {formatPrice(effectivePrice)}
+                    </p>
+                  </div>
+                ) : (
+                  <p className="font-heading text-3xl font-bold text-foreground">
+                    {formatPrice(product.price)}
+                  </p>
+                )}
                 <p className="mt-1 text-sm text-muted-foreground">
                   {product.inStock ? 'Disponible' : 'Sin stock'}
                 </p>

@@ -10,8 +10,10 @@ import {
   ChevronRight,
   Upload,
   EyeOff,
+  Package,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { ImageLoader } from '@/components/ui/image-loader'
 import { Input } from '@/components/ui/input'
 import { SearchableSelect } from '@/components/ui/searchable-select'
 import {
@@ -231,6 +233,7 @@ export default function AdminProductosPage() {
           <table className="data-table">
             <thead>
               <tr>
+                <th></th>
                 <th>Código</th>
                 <th>Nombre</th>
                 <th>Categoría</th>
@@ -244,6 +247,21 @@ export default function AdminProductosPage() {
             <tbody>
               {products.map((p) => (
                 <tr key={p.id}>
+                  <td>
+                    <div className="relative flex size-11 items-center justify-center overflow-hidden rounded-md bg-muted">
+                      {p.imageUrl ? (
+                        <ImageLoader
+                          src={p.imageUrl}
+                          alt={p.name}
+                          fill
+                          sizes="44px"
+                          className="object-cover"
+                        />
+                      ) : (
+                        <Package className="size-5 text-muted-foreground/30" />
+                      )}
+                    </div>
+                  </td>
                   <td className="font-mono text-xs text-muted-foreground">
                     {p.sku ?? '—'}
                   </td>
@@ -302,7 +320,7 @@ export default function AdminProductosPage() {
               {products.length === 0 && (
                 <tr>
                   <td
-                    colSpan={8}
+                    colSpan={9}
                     className="py-8 text-center text-muted-foreground"
                   >
                     No hay productos.

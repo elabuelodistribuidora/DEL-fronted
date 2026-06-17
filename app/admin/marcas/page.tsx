@@ -5,6 +5,13 @@ import { Plus, Loader2, Trash2, Pencil, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import { marcasService } from '@/services/marcas.service'
 import { uploadService } from '@/services/upload.service'
 import type { Marca } from '@/types/product'
@@ -19,6 +26,9 @@ export default function AdminMarcasPage() {
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [busyId, setBusyId] = useState<string | null>(null)
+  const [deleting, setDeleting] = useState<Marca | null>(null)
+  const [reassignTo, setReassignTo] = useState('')
+  const [reassigning, setReassigning] = useState(false)
 
   const load = () =>
     marcasService
@@ -65,19 +75,32 @@ export default function AdminMarcasPage() {
     }
   }
 
-  const remove = async (m: Marca) => {
-    if (
-      !confirm(
-        `¿Eliminar la marca "${m.name}"? Los productos asociados quedarán sin marca.`,
-      )
-    )
+  const startDelete = async (m: Marca) => {
+    if ((m._count?.products ?? 0) === 0) {
+      if (!confirm(`¿Eliminar la marca "${m.name}"?`)) return
+      setBusyId(m.id)
+      try {
+        await marcasService.remove(m.id)
+        await load()
+      } finally {
+        setBusyId(null)
+      }
       return
-    setBusyId(m.id)
+    }
+    // Tiene productos: pedir marca destino
+    setDeleting(m)
+    setReassignTo('')
+  }
+
+  const confirmReassignDelete = async () => {
+    if (!deleting || !reassignTo) return
+    setReassigning(true)
     try {
-      await marcasService.remove(m.id)
+      await marcasService.remove(deleting.id, reassignTo)
+      setDeleting(null)
       await load()
     } finally {
-      setBusyId(null)
+      setReassigning(false)
     }
   }
 
@@ -156,6 +179,53 @@ export default function AdminMarcasPage() {
         </div>
       )}
 
+      {/* Panel de reasignación al borrar (si la marca tiene productos) */}
+      {deleting && (
+        <div className="rounded-xl border border-amber-300 bg-amber-50 p-6">
+          <h2 className="font-heading text-base font-semibold text-amber-900">
+            Reasignar productos de “{deleting.name}”
+          </h2>
+          <p className="mt-1 text-sm text-amber-800">
+            Esta marca tiene {deleting._count?.products} producto(s). Elegí a qué
+            marca moverlos antes de eliminarla.
+          </p>
+          <div className="mt-4 flex flex-wrap items-end gap-3">
+            <div className="w-64 space-y-2">
+              <Label>Mover productos a</Label>
+              <Select value={reassignTo} onValueChange={setReassignTo}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Elegí una marca" />
+                </SelectTrigger>
+                <SelectContent>
+                  {marcas
+                    .filter((m) => m.id !== deleting.id)
+                    .map((m) => (
+                      <SelectItem key={m.id} value={m.id}>
+                        {m.name}
+                      </SelectItem>
+                    ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <Button
+              variant="outline"
+              className="rounded-full"
+              onClick={() => setDeleting(null)}
+            >
+              Cancelar
+            </Button>
+            <Button
+              className="rounded-full"
+              disabled={!reassignTo}
+              loading={reassigning}
+              onClick={confirmReassignDelete}
+            >
+              Reasignar y eliminar
+            </Button>
+          </div>
+        </div>
+      )}
+
       <div className="overflow-x-auto rounded-xl border border-border bg-card">
         {loading ? (
           <div className="flex justify-center py-16">
@@ -192,7 +262,7 @@ export default function AdminMarcasPage() {
                         <Pencil className="size-3" /> Editar
                       </button>
                       <button
-                        onClick={() => remove(m)}
+                        onClick={() => startDelete(m)}
                         disabled={busyId === m.id}
                         className="inline-flex items-center gap-1 text-xs text-destructive hover:underline disabled:opacity-50"
                       >

@@ -16,8 +16,9 @@ export const marcasService = {
     input: Partial<{ name: string; logo: string; active: boolean }>,
   ) => api.patch<Marca>(`/marcas/${id}`, input),
 
-  remove: (id: string) =>
-    api.delete<{ deleted: boolean; unlinkedProducts: number }>(
-      `/marcas/${id}`,
+  /** Si la marca tiene productos, pasar reassignTo con el id de la marca destino. */
+  remove: (id: string, reassignTo?: string) =>
+    api.delete<{ deleted: boolean; reassigned?: number }>(
+      `/marcas/${id}${reassignTo ? `?reassignTo=${reassignTo}` : ''}`,
     ),
 }

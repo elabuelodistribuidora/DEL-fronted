@@ -3,10 +3,10 @@
 const brands: { name: string; logo?: string }[] = [
   { name: 'OMC', logo: '/marcas/omc.png' },
   { name: 'Xin Bowen', logo: '/marcas/xinbowen.png' },
-  { name: 'Camaleon' },
+  { name: 'Camaleon', logo: '/marcas/camaleon.png' },
   { name: 'EQ Artistica', logo: '/marcas/eq.png' },
   { name: 'Acuarel', logo: '/marcas/acuarel.png' },
-  { name: 'Gines' },
+  { name: 'Gines', logo: '/marcas/gines.png' },
   { name: 'Eterna', logo: '/marcas/eterna.png' },
   { name: 'Casan', logo: '/marcas/casan.png' },
   { name: 'Eureka', logo: '/marcas/eureka.png' },

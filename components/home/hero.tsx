@@ -6,7 +6,7 @@ import { ImageLoader } from '@/components/ui/image-loader'
 
 export function Hero() {
   return (
-    <section className="relative overflow-hidden bg-primary text-primary-foreground">
+    <section className="relative overflow-hidden bg-gradient-to-br from-[oklch(0.5_0.17_30)] via-[oklch(0.43_0.18_24)] to-[oklch(0.32_0.13_18)] text-primary-foreground">
 
       {/* Vectores de fondo */}
       <div className="pointer-events-none absolute -right-32 -top-32 size-[500px] rounded-full border border-primary-foreground/5" />

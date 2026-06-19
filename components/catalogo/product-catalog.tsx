@@ -32,8 +32,14 @@ export function ProductCatalog() {
 
   // Catálogos de filtros
   useEffect(() => {
-    categoriasService.list().then(setCategorias).catch(() => {})
-    marcasService.list().then(setMarcas).catch(() => {})
+    categoriasService
+      .list()
+      .then(setCategorias)
+      .catch(() => {})
+    marcasService
+      .list()
+      .then(setMarcas)
+      .catch(() => {})
   }, [])
 
   // Debounce de búsqueda
@@ -107,7 +113,9 @@ export function ProductCatalog() {
               'Cargando…'
             ) : (
               <>
-                <span className="font-medium text-foreground">{meta.total}</span>{' '}
+                <span className="font-medium text-foreground">
+                  {meta.total}
+                </span>{' '}
                 resultado{meta.total === 1 ? '' : 's'}
               </>
             )}
@@ -129,7 +137,7 @@ export function ProductCatalog() {
         </div>
       ) : products.length > 0 ? (
         <>
-          <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 xl:grid-cols-4">
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6">
             {products.map((product) => (
               <ProductCard key={product.id} product={product} />
             ))}

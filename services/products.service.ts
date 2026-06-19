@@ -54,6 +54,14 @@ export const productsService = {
 
   getOne: (idOrSlug: string) => api.get<Product>(`/products/${idOrSlug}`),
 
+  /** Productos relacionados (misma marca/categoría). */
+  getRelated: (idOrSlug: string) =>
+    api.get<Product[]>(`/products/${idOrSlug}/related`),
+
+  /** Info de la lista de precios (Excel) para descargar. */
+  priceList: () =>
+    api.get<{ available: boolean; url: string | null }>('/products/price-list'),
+
   // ── Admin ──
   create: (input: ProductInput) => api.post<Product>('/products', input),
 

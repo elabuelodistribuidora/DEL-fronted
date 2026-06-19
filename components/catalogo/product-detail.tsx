@@ -20,6 +20,7 @@ import { useAuth } from '@/hooks/useAuth'
 import { useCart } from '@/hooks/useCart'
 import { formatPrice } from '@/utils/formatters'
 import type { Product } from '@/types/product'
+import { ProductCard } from './product-card'
 
 export function ProductDetail({ slug }: { slug: string }) {
   const { isAuthenticated } = useAuth()
@@ -29,13 +30,19 @@ export function ProductDetail({ slug }: { slug: string }) {
   const [notFound, setNotFound] = useState(false)
   const [qty, setQty] = useState(1)
   const [added, setAdded] = useState(false)
+  const [related, setRelated] = useState<Product[]>([])
 
   useEffect(() => {
+    setLoading(true)
     productsService
       .getOne(slug)
       .then(setProduct)
       .catch(() => setNotFound(true))
       .finally(() => setLoading(false))
+    productsService
+      .getRelated(slug)
+      .then(setRelated)
+      .catch(() => setRelated([]))
   }, [slug])
 
   if (loading) {
@@ -91,15 +98,15 @@ export function ProductDetail({ slug }: { slug: string }) {
         Volver al catálogo
       </Link>
 
-      <div className="grid gap-10 lg:grid-cols-2">
+      <div className="grid gap-8 lg:grid-cols-[minmax(0,360px)_1fr]">
         {/* Imagen */}
-        <div className="relative flex aspect-square items-center justify-center overflow-hidden rounded-2xl border border-border bg-muted">
+        <div className="relative flex aspect-square w-full items-center justify-center overflow-hidden rounded-2xl border border-border bg-muted">
           {product.imageUrl ? (
             <ImageLoader
               src={product.imageUrl}
               alt={product.name}
               fill
-              sizes="(min-width: 1024px) 40vw, 90vw"
+              sizes="(min-width: 1024px) 360px, 90vw"
               className="object-cover"
             />
           ) : (
@@ -216,6 +223,19 @@ export function ProductDetail({ slug }: { slug: string }) {
           </div>
         </div>
       </div>
+
+      {related.length > 0 && (
+        <section className="mt-12 border-t border-border pt-8">
+          <h2 className="mb-5 font-heading text-lg font-bold text-foreground">
+            Productos relacionados
+          </h2>
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
+            {related.map((p) => (
+              <ProductCard key={p.id} product={p} />
+            ))}
+          </div>
+        </section>
+      )}
     </div>
   )
 }

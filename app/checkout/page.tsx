@@ -14,6 +14,7 @@ import { SiteFooter } from '@/components/layout/site-footer'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { Textarea } from '@/components/ui/textarea'
 import { useCart } from '@/hooks/useCart'
 import { cartService } from '@/services/cart.service'
 import { ordersService } from '@/services/orders.service'
@@ -42,6 +43,7 @@ export default function CheckoutPage() {
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [order, setOrder] = useState<Order | null>(null)
+  const [notes, setNotes] = useState('')
 
   // Prefill con la ubicación guardada del cliente
   useEffect(() => {
@@ -110,14 +112,13 @@ export default function CheckoutPage() {
       )
       const { order: created } = await ordersService.checkout({
         shippingAddress: address,
+        notes: notes.trim() || undefined,
       })
       clearCart()
       setOrder(created)
       setStep('done')
     } catch (err) {
-      setError(
-        err instanceof Error ? err.message : 'No se pudo crear la orden',
-      )
+      setError(err instanceof Error ? err.message : 'No se pudo crear la orden')
     } finally {
       setSubmitting(false)
     }
@@ -158,7 +159,9 @@ export default function CheckoutPage() {
                     {s.icon}
                     <span className="hidden sm:inline">{s.label}</span>
                   </div>
-                  {i < steps.length - 1 && <div className="h-px w-6 bg-border" />}
+                  {i < steps.length - 1 && (
+                    <div className="h-px w-6 bg-border" />
+                  )}
                 </div>
               )
             })}
@@ -199,6 +202,16 @@ export default function CheckoutPage() {
                 <span className="font-heading text-lg font-bold">
                   {formatPrice(total)}
                 </span>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="notes">Observaciones (opcional)</Label>
+                <Textarea
+                  id="notes"
+                  rows={3}
+                  placeholder="¿No encontraste algún producto o tenés algún comentario sobre el pedido? Dejanos tu mensaje y lo vemos."
+                  value={notes}
+                  onChange={(e) => setNotes(e.target.value)}
+                />
               </div>
               <Button
                 className="mt-2 rounded-full"

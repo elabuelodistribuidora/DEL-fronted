@@ -78,8 +78,8 @@ export function Hero() {
             {/* Foto principal (real) */}
             <figure className="relative col-span-3 row-span-4 overflow-hidden rounded-2xl shadow-2xl shadow-black/40 ring-1 ring-primary-foreground/10">
               <Image
-                src="/hero-art.jpg"
-                alt="Pinceles, pinturas y paleta de colores"
+                src="/hero-local.jpg"
+                alt="Interior del local de Distribuidora El Abuelo"
                 fill
                 priority
                 sizes="(min-width: 1024px) 30vw, 60vw"
@@ -92,18 +92,18 @@ export function Hero() {
 
             <CollageTile
               className="col-span-2 row-span-3"
-              icon={<PaintBucket className="size-7" />}
-              title="Pinturas decorativas"
-              subtitle="Desde $1.200 / pomo"
-              image="https://loremflickr.com/600/700/acrylic,paint?lock=11"
+              icon={<Brush className="size-7" />}
+              title="Pinceles"
+              subtitle="+200 modelos"
+              image="/hero-pinceles.jpg"
             />
 
             <CollageTile
               className="col-span-2 row-span-3"
-              icon={<Brush className="size-7" />}
-              title="Pinceles"
-              subtitle="+200 modelos"
-              image="https://loremflickr.com/600/700/paintbrush?lock=12"
+              icon={<PaintBucket className="size-7" />}
+              title="Pinturas decorativas"
+              subtitle="Desde $1.200 / pomo"
+              image="/hero-pinturas.jpg"
             />
 
             <CollageTile
@@ -111,8 +111,7 @@ export function Hero() {
               icon={<Frame className="size-7" />}
               title="Lienzos y bastidores - Cartones entelados"
               subtitle="Todas las medidas"
-              image="https://loremflickr.com/800/400/canvas,easel?lock=13"
-              row
+              image="/hero-bastidores.jpg"
             />
           </div>
 

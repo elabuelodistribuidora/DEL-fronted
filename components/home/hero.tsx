@@ -92,17 +92,17 @@ export function Hero() {
 
             <CollageTile
               className="col-span-2 row-span-3"
-              icon={<Brush className="size-7" />}
-              title="Pinceles"
-              subtitle="+200 modelos"
+              icon={<PaintBucket className="size-7" />}
+              title="Pinturas decorativas"
+              subtitle="Desde $1.200"
               image="/hero-pinceles.jpg"
-            />
+              />
 
             <CollageTile
               className="col-span-2 row-span-3"
-              icon={<PaintBucket className="size-7" />}
-              title="Pinturas decorativas"
-              subtitle="Desde $1.200 / pomo"
+              icon={<Brush className="size-7" />}
+              title="Pinceles"
+              subtitle="+200 modelos"
               image="/hero-pinturas.jpg"
             />
 

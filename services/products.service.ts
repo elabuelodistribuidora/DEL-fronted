@@ -28,6 +28,7 @@ export type ProductInput = {
   featured?: boolean
   onSale?: boolean
   salePrice?: number
+  exclusive?: boolean
   active?: boolean
   categoriaId: string
   marcaId?: string | null
@@ -39,8 +40,7 @@ export type ImportResult = {
   applied: boolean
   totalRows: number
   created: number
-  updated: number
-  unchanged: number
+  deleted: number
   skipped: number
   errorCount: number
   errors: ImportRowError[]

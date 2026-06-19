@@ -18,6 +18,7 @@ export function ProductCard({ product }: { product: Product }) {
 
   const onSale = Boolean(product.onSale && product.salePrice != null)
   const effectivePrice = onSale ? (product.salePrice as number) : product.price
+  const exclusive = Boolean(product.exclusive)
 
   const handleAdd = () => {
     addItem(
@@ -38,7 +39,13 @@ export function ProductCard({ product }: { product: Product }) {
   }
 
   return (
-    <article className="group flex flex-col overflow-hidden rounded-xl border border-border bg-card transition-all hover:border-primary/30 hover:shadow-lg hover:shadow-primary/5">
+    <article
+      className={`group flex flex-col overflow-hidden rounded-xl border bg-card transition-all hover:shadow-lg hover:shadow-primary/5 ${
+        exclusive
+          ? 'border-primary ring-2 ring-primary/60'
+          : 'border-border hover:border-primary/30'
+      }`}
+    >
       <Link
         href={`/catalogo/${product.slug}`}
         className="relative flex aspect-square items-center justify-center bg-muted"
@@ -55,6 +62,11 @@ export function ProductCard({ product }: { product: Product }) {
           <Package className="size-14 text-muted-foreground/30" />
         )}
         <div className="absolute left-3 top-3 flex flex-col items-start gap-1.5">
+          {exclusive && (
+            <Badge className="bg-primary font-bold text-primary-foreground shadow-sm hover:bg-primary">
+              EXCLUSIVO
+            </Badge>
+          )}
           {onSale && (
             <Badge className="bg-yellow-400 font-bold text-yellow-950 shadow-sm hover:bg-yellow-400">
               OFERTA

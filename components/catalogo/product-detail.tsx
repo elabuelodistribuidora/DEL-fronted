@@ -61,6 +61,7 @@ export function ProductDetail({ slug }: { slug: string }) {
 
   const onSale = Boolean(product.onSale && product.salePrice != null)
   const effectivePrice = onSale ? (product.salePrice as number) : product.price
+  const exclusive = Boolean(product.exclusive)
 
   const handleAdd = () => {
     addItem(
@@ -110,6 +111,11 @@ export function ProductDetail({ slug }: { slug: string }) {
         <div className="space-y-6">
           <div>
             <div className="flex flex-wrap items-center gap-2">
+              {exclusive && (
+                <Badge className="bg-primary font-bold text-primary-foreground hover:bg-primary">
+                  EXCLUSIVO
+                </Badge>
+              )}
               {onSale && (
                 <Badge className="bg-yellow-400 font-bold text-yellow-950 hover:bg-yellow-400">
                   OFERTA

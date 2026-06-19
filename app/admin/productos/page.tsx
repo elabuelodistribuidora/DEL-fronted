@@ -3,7 +3,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
 import {
-  Plus,
   Loader2,
   Search,
   ChevronLeft,
@@ -147,12 +146,6 @@ export default function AdminProductosPage() {
             <Upload className="size-4" />
             Importar Excel
           </Button>
-          <Button asChild className="rounded-full">
-            <Link href="/admin/productos/nuevo">
-              <Plus className="size-4" />
-              Nuevo producto
-            </Link>
-          </Button>
         </div>
       </div>
 
@@ -165,9 +158,7 @@ export default function AdminProductosPage() {
         (importResult.applied ? (
           <div className="rounded-lg bg-green-50 px-4 py-3 text-sm text-green-800">
             ✅ Importación aplicada: <strong>{importResult.created}</strong>{' '}
-            creados, <strong>{importResult.updated}</strong> actualizados
-            {importResult.unchanged > 0 &&
-              `, ${importResult.unchanged} sin cambios`}
+            creados, <strong>{importResult.deleted}</strong> eliminados
             {importResult.skipped > 0 &&
               `, ${importResult.skipped} filas vacías omitidas`}
             {importResult.marcasCreadas.length > 0 &&

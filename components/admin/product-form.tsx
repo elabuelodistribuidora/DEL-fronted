@@ -27,6 +27,7 @@ type FormState = {
   featured: boolean
   onSale: boolean
   salePrice: string
+  exclusive: boolean
   image: string
 }
 
@@ -42,6 +43,7 @@ const empty: FormState = {
   featured: false,
   onSale: false,
   salePrice: '',
+  exclusive: false,
   image: '',
 }
 
@@ -75,6 +77,7 @@ export function ProductForm({ id }: { id: string }) {
             featured: Boolean(p.featured),
             onSale: Boolean(p.onSale),
             salePrice: p.salePrice != null ? String(p.salePrice) : '',
+            exclusive: Boolean(p.exclusive),
             image: p.image ?? '',
           }),
         )
@@ -119,6 +122,7 @@ export function ProductForm({ id }: { id: string }) {
       onSale: form.onSale,
       salePrice:
         form.onSale && form.salePrice ? Number(form.salePrice) : undefined,
+      exclusive: form.exclusive,
       image: form.image || undefined,
     }
     try {
@@ -166,11 +170,19 @@ export function ProductForm({ id }: { id: string }) {
         onSubmit={handleSubmit}
         className="space-y-4 rounded-xl border border-border bg-card p-6"
       >
+        {!isNew && (
+          <p className="rounded-lg bg-muted px-4 py-2.5 text-xs text-muted-foreground">
+            Código, nombre, precio, categoría y marca se actualizan desde el
+            Excel (solo lectura). Acá editás imagen, descripción, stock, oferta,
+            exclusividad y visibilidad.
+          </p>
+        )}
         <div className="grid gap-4 sm:grid-cols-2">
           <div className="space-y-2 sm:col-span-2">
             <Label>Nombre</Label>
             <Input
               required
+              disabled={!isNew}
               value={form.name}
               onChange={(e) => set('name', e.target.value)}
               placeholder="Nombre del producto (incluye la unidad/medida)"
@@ -192,6 +204,7 @@ export function ProductForm({ id }: { id: string }) {
               onChange={(v) => set('categoriaId', v)}
               options={categorias.map((c) => ({ value: c.id, label: c.name }))}
               placeholder="Seleccioná una categoría"
+              disabled={!isNew}
             />
           </div>
 
@@ -203,12 +216,14 @@ export function ProductForm({ id }: { id: string }) {
               options={marcas.map((m) => ({ value: m.id, label: m.name }))}
               placeholder="Sin marca"
               clearLabel="Sin marca"
+              disabled={!isNew}
             />
           </div>
 
           <div className="space-y-2">
             <Label>Código</Label>
             <Input
+              disabled={!isNew}
               value={form.sku}
               onChange={(e) => set('sku', e.target.value)}
               placeholder="15601"
@@ -218,6 +233,7 @@ export function ProductForm({ id }: { id: string }) {
             <Label>Precio mayorista</Label>
             <Input
               required
+              disabled={!isNew}
               type="number"
               min="0"
               step="0.01"
@@ -268,6 +284,16 @@ export function ProductForm({ id }: { id: string }) {
             />
             <Label htmlFor="featured" className="cursor-pointer font-normal">
               Destacado (aparece en la home)
+            </Label>
+          </div>
+          <div className="flex items-center gap-2">
+            <Checkbox
+              id="exclusive"
+              checked={form.exclusive}
+              onCheckedChange={(v) => set('exclusive', Boolean(v))}
+            />
+            <Label htmlFor="exclusive" className="cursor-pointer font-normal">
+              Exclusivo (se diferencia del resto)
             </Label>
           </div>
           <div className="flex items-center gap-2">

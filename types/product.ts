@@ -44,6 +44,7 @@ export type Product = {
   featured?: boolean
   onSale?: boolean
   salePrice?: number | null
+  exclusive?: boolean
   active?: boolean
   categoriaId: string
   marcaId?: string | null

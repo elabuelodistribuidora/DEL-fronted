@@ -16,6 +16,7 @@ export function SearchableSelect({
   placeholder = 'Seleccioná',
   clearLabel,
   className,
+  disabled = false,
 }: {
   value: string
   onChange: (value: string) => void
@@ -24,6 +25,7 @@ export function SearchableSelect({
   /** Si se pasa, agrega una opción para limpiar la selección (value ''). */
   clearLabel?: string
   className?: string
+  disabled?: boolean
 }) {
   const [open, setOpen] = useState(false)
   const [query, setQuery] = useState('')
@@ -60,8 +62,12 @@ export function SearchableSelect({
     <div ref={ref} className={cn('relative', className)}>
       <button
         type="button"
-        onClick={() => setOpen((o) => !o)}
-        className="flex h-9 w-full items-center justify-between gap-2 rounded-lg border border-border bg-background px-3 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
+        disabled={disabled}
+        onClick={() => !disabled && setOpen((o) => !o)}
+        className={cn(
+          'flex h-9 w-full items-center justify-between gap-2 rounded-lg border border-border bg-background px-3 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring/50',
+          disabled && 'cursor-not-allowed opacity-60',
+        )}
       >
         <span className={cn('truncate', !selected && 'text-muted-foreground')}>
           {selected ? selected.label : placeholder}

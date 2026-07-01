@@ -48,8 +48,15 @@ export function AccountTabs() {
     }
   }
 
+  const sessionExpired = searchParams.get('expired') === '1'
+
   return (
     <div className="mx-auto w-full max-w-md">
+      {sessionExpired && !error && (
+        <p className="mb-4 rounded-lg bg-amber-100 px-4 py-3 text-sm text-amber-800">
+          Tu sesión expiró. Iniciá sesión de nuevo para continuar.
+        </p>
+      )}
       {error && (
         <p className="mb-4 rounded-lg bg-destructive/10 px-4 py-3 text-sm text-destructive">
           {error}

@@ -6,6 +6,10 @@ export type CartItem = {
     Product,
     'id' | 'name' | 'slug' | 'sku' | 'image' | 'imageUrl' | 'inStock'
   >
+  /** Modelo/variante elegido (vacío = por defecto). */
+  variantName?: string
+  /** Key de la imagen del modelo elegido (snapshot para el pedido). */
+  variantImage?: string | null
   /** Precio unitario mayorista al momento de agregar. */
   price: number
   quantity: number

@@ -31,9 +31,12 @@ export function ProductDetail({ slug }: { slug: string }) {
   const [qty, setQty] = useState(1)
   const [added, setAdded] = useState(false)
   const [related, setRelated] = useState<Product[]>([])
+  // Modelo elegido (0 = por defecto). Se resetea al cambiar de producto.
+  const [selected, setSelected] = useState(0)
 
   useEffect(() => {
     setLoading(true)
+    setSelected(0)
     productsService
       .getOne(slug)
       .then(setProduct)
@@ -70,6 +73,29 @@ export function ProductDetail({ slug }: { slug: string }) {
   const effectivePrice = onSale ? (product.salePrice as number) : product.price
   const exclusive = Boolean(product.exclusive)
 
+  // Lista de modelos: el modelo por defecto (imagen + nombre del producto) +
+  // las variantes cargadas. Vacía si el producto no tiene modelos.
+  const hasModels =
+    Boolean(product.hasVariants) && (product.variants?.length ?? 0) > 0
+  const models = hasModels
+    ? [
+        {
+          name: '',
+          label: 'Original',
+          image: product.image ?? null,
+          imageUrl: product.imageUrl ?? null,
+        },
+        ...(product.variants ?? []).map((v) => ({
+          name: v.name,
+          label: v.name,
+          image: v.image ?? null,
+          imageUrl: v.imageUrl ?? null,
+        })),
+      ]
+    : []
+  const activeModel = models[selected]
+  const mainImageUrl = activeModel?.imageUrl ?? product.imageUrl
+
   const handleAdd = () => {
     addItem(
       {
@@ -78,9 +104,11 @@ export function ProductDetail({ slug }: { slug: string }) {
         slug: product.slug,
         sku: product.sku,
         image: product.image,
-        imageUrl: product.imageUrl,
+        imageUrl: mainImageUrl,
         inStock: product.inStock,
         price: effectivePrice,
+        variantName: activeModel?.name || undefined,
+        variantImage: activeModel?.image ?? undefined,
       },
       qty,
     )
@@ -99,18 +127,53 @@ export function ProductDetail({ slug }: { slug: string }) {
       </Link>
 
       <div className="grid gap-8 lg:grid-cols-[minmax(0,360px)_1fr]">
-        {/* Imagen */}
-        <div className="relative flex aspect-square w-full items-center justify-center overflow-hidden rounded-2xl border border-border bg-muted">
-          {product.imageUrl ? (
-            <ImageLoader
-              src={product.imageUrl}
-              alt={product.name}
-              fill
-              sizes="(min-width: 1024px) 360px, 90vw"
-              className="object-cover"
-            />
-          ) : (
-            <Package className="size-24 text-muted-foreground/30" />
+        {/* Imagen + selector de modelos */}
+        <div className="space-y-3">
+          <div className="relative flex aspect-square w-full items-center justify-center overflow-hidden rounded-2xl border border-border bg-muted">
+            {mainImageUrl ? (
+              <ImageLoader
+                key={mainImageUrl}
+                src={mainImageUrl}
+                alt={activeModel?.name || product.name}
+                fill
+                sizes="(min-width: 1024px) 360px, 90vw"
+                className="object-cover"
+              />
+            ) : (
+              <Package className="size-24 text-muted-foreground/30" />
+            )}
+          </div>
+
+          {models.length > 0 && (
+            <div className="flex flex-wrap gap-2">
+              {models.map((m, i) => (
+                <button
+                  key={`${m.name}-${i}`}
+                  type="button"
+                  onClick={() => setSelected(i)}
+                  title={m.label}
+                  className={`relative size-16 overflow-hidden rounded-lg border-2 transition ${
+                    selected === i
+                      ? 'border-primary ring-2 ring-primary/30'
+                      : 'border-border hover:border-primary/40'
+                  }`}
+                >
+                  {m.imageUrl ? (
+                    <ImageLoader
+                      src={m.imageUrl}
+                      alt={m.label}
+                      fill
+                      sizes="64px"
+                      className="object-cover"
+                    />
+                  ) : (
+                    <span className="flex size-full items-center justify-center">
+                      <Package className="size-6 text-muted-foreground/30" />
+                    </span>
+                  )}
+                </button>
+              ))}
+            </div>
           )}
         </div>
 
@@ -141,6 +204,11 @@ export function ProductDetail({ slug }: { slug: string }) {
             {product.sku && (
               <p className="mt-1 text-sm text-muted-foreground">
                 Código: {product.sku}
+              </p>
+            )}
+            {models.length > 0 && activeModel && (
+              <p className="mt-1 text-sm font-medium text-primary">
+                Modelo: {activeModel.label}
               </p>
             )}
           </div>

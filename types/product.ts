@@ -24,6 +24,16 @@ export type Marca = {
 }
 
 /**
+ * Modelo/variante de un producto: mismo código, distinto diseño.
+ * Solo nombre + imagen (sin precio ni stock propios).
+ */
+export type ProductVariant = {
+  name: string
+  image?: string | null
+  imageUrl?: string | null
+}
+
+/**
  * Producto tal como lo serializa el backend (`/products`).
  */
 export type Product = {
@@ -45,6 +55,8 @@ export type Product = {
   onSale?: boolean
   salePrice?: number | null
   exclusive?: boolean
+  hasVariants?: boolean
+  variants?: ProductVariant[]
   active?: boolean
   categoriaId: string
   marcaId?: string | null

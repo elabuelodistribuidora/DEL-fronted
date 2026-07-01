@@ -10,6 +10,10 @@ type AddItemPayload = Pick<
   'id' | 'name' | 'slug' | 'sku' | 'image' | 'imageUrl' | 'inStock'
 > & {
   price: number
+  /** Modelo/variante elegido (vacío = por defecto). */
+  variantName?: string
+  /** Key de la imagen del modelo elegido. */
+  variantImage?: string | null
 }
 
 type CartStore = {
@@ -20,20 +24,24 @@ type CartStore = {
   clearCart: () => void
 }
 
+/** Id de línea del carrito: producto + modelo (cada modelo = línea aparte). */
+const lineId = (productId: string, variantName?: string) =>
+  variantName ? `${productId}::${variantName}` : productId
+
 export const useCartStore = create<CartStore>()(
   persist(
     (set, get) => ({
       items: [],
 
       addItem: (product, quantity = 1) => {
+        const variantName = product.variantName ?? ''
+        const id = lineId(product.id, variantName)
         set((state) => {
-          const existing = state.items.find((i) => i.product.id === product.id)
+          const existing = state.items.find((i) => i.id === id)
           if (existing) {
             return {
               items: state.items.map((i) =>
-                i.product.id === product.id
-                  ? { ...i, quantity: i.quantity + quantity }
-                  : i,
+                i.id === id ? { ...i, quantity: i.quantity + quantity } : i,
               ),
             }
           }
@@ -41,16 +49,18 @@ export const useCartStore = create<CartStore>()(
             items: [
               ...state.items,
               {
-                id: product.id,
+                id,
                 product: {
                   id: product.id,
                   name: product.name,
                   slug: product.slug,
                   sku: product.sku,
-                  image: product.image,
+                  image: product.variantImage ?? product.image,
                   imageUrl: product.imageUrl,
                   inStock: product.inStock,
                 },
+                variantName: variantName || undefined,
+                variantImage: product.variantImage ?? null,
                 price: product.price,
                 quantity,
               },
@@ -61,7 +71,7 @@ export const useCartStore = create<CartStore>()(
 
       removeItem: (id) => {
         set((state) => ({
-          items: state.items.filter((i) => i.product.id !== id),
+          items: state.items.filter((i) => i.id !== id),
         }))
       },
 
@@ -72,7 +82,7 @@ export const useCartStore = create<CartStore>()(
         }
         set((state) => ({
           items: state.items.map((i) =>
-            i.product.id === id ? { ...i, quantity } : i,
+            i.id === id ? { ...i, quantity } : i,
           ),
         }))
       },

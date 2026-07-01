@@ -108,7 +108,12 @@ export default function CheckoutPage() {
     setError(null)
     try {
       await cartService.replace(
-        items.map((i) => ({ productId: i.product.id, quantity: i.quantity })),
+        items.map((i) => ({
+          productId: i.product.id,
+          quantity: i.quantity,
+          variantName: i.variantName,
+          variantImage: i.variantImage,
+        })),
       )
       const { order: created } = await ordersService.checkout({
         shippingAddress: address,
@@ -187,6 +192,11 @@ export default function CheckoutPage() {
                       <p className="text-sm font-medium text-foreground">
                         {item.product.name}
                       </p>
+                      {item.variantName && (
+                        <p className="text-xs font-medium text-primary">
+                          Modelo: {item.variantName}
+                        </p>
+                      )}
                       <p className="text-xs text-muted-foreground">
                         {item.quantity} × {formatPrice(item.price)}
                       </p>

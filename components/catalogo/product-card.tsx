@@ -19,6 +19,9 @@ export function ProductCard({ product }: { product: Product }) {
   const onSale = Boolean(product.onSale && product.salePrice != null)
   const effectivePrice = onSale ? (product.salePrice as number) : product.price
   const exclusive = Boolean(product.exclusive)
+  // Tiene modelos elegibles: se muestra badge y se manda a elegir al detalle.
+  const hasModels =
+    Boolean(product.hasVariants) && (product.variants?.length ?? 0) > 0
 
   // Cintas diagonales de la esquina superior derecha. Si hay varias se apilan
   // (offset por índice) sin superponerse.
@@ -100,6 +103,11 @@ export function ProductCard({ product }: { product: Product }) {
             Sin stock
           </Badge>
         )}
+        {hasModels && (
+          <Badge className="absolute bottom-3 left-3 bg-background/90 text-foreground shadow-sm hover:bg-background/90">
+            Varios modelos
+          </Badge>
+        )}
       </Link>
 
       <div className="flex flex-1 flex-col gap-3 p-4">
@@ -132,23 +140,37 @@ export function ProductCard({ product }: { product: Product }) {
                   {formatPrice(product.price)}
                 </span>
               )}
-              <Button
-                size="sm"
-                className="rounded-full text-xs"
-                onClick={handleAdd}
-                disabled={!product.inStock}
-              >
-                {added ? (
-                  <Check className="size-3.5" />
-                ) : (
-                  <ShoppingCart className="size-3.5" />
-                )}
-                {!product.inStock
-                  ? 'Sin stock'
-                  : added
-                    ? 'Agregado'
-                    : 'Agregar'}
-              </Button>
+              {hasModels ? (
+                <Button
+                  asChild
+                  size="sm"
+                  className="rounded-full text-xs"
+                  disabled={!product.inStock}
+                >
+                  <Link href={`/catalogo/${product.slug}`}>
+                    <ShoppingCart className="size-3.5" />
+                    Elegir modelo
+                  </Link>
+                </Button>
+              ) : (
+                <Button
+                  size="sm"
+                  className="rounded-full text-xs"
+                  onClick={handleAdd}
+                  disabled={!product.inStock}
+                >
+                  {added ? (
+                    <Check className="size-3.5" />
+                  ) : (
+                    <ShoppingCart className="size-3.5" />
+                  )}
+                  {!product.inStock
+                    ? 'Sin stock'
+                    : added
+                      ? 'Agregado'
+                      : 'Agregar'}
+                </Button>
+              )}
             </>
           ) : (
             <>

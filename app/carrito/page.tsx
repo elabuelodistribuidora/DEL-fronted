@@ -72,6 +72,11 @@ export default function CarritoPage() {
                           <p className="font-heading text-sm font-semibold text-foreground">
                             {item.product.name}
                           </p>
+                          {item.variantName && (
+                            <p className="text-xs font-medium text-primary">
+                              Modelo: {item.variantName}
+                            </p>
+                          )}
                           {item.product.sku && (
                             <p className="text-xs text-muted-foreground">
                               Cód. {item.product.sku}
@@ -91,7 +96,7 @@ export default function CarritoPage() {
                           size="icon"
                           className="size-7 rounded-full"
                           onClick={() =>
-                            updateQuantity(item.product.id, item.quantity - 1)
+                            updateQuantity(item.id, item.quantity - 1)
                           }
                         >
                           <Minus className="size-3" />
@@ -103,7 +108,7 @@ export default function CarritoPage() {
                           onChange={(e) => {
                             const n = parseInt(e.target.value, 10)
                             if (Number.isInteger(n) && n >= 1) {
-                              updateQuantity(item.product.id, n)
+                              updateQuantity(item.id, n)
                             }
                           }}
                           className="h-7 w-14 rounded-md border border-border bg-background text-center text-sm font-medium outline-none focus-visible:ring-2 focus-visible:ring-ring/50 [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
@@ -114,7 +119,7 @@ export default function CarritoPage() {
                           size="icon"
                           className="size-7 rounded-full"
                           onClick={() =>
-                            updateQuantity(item.product.id, item.quantity + 1)
+                            updateQuantity(item.id, item.quantity + 1)
                           }
                         >
                           <Plus className="size-3" />
@@ -126,7 +131,7 @@ export default function CarritoPage() {
                           variant="ghost"
                           size="icon"
                           className="ml-auto size-7 text-destructive hover:text-destructive"
-                          onClick={() => removeItem(item.product.id)}
+                          onClick={() => removeItem(item.id)}
                         >
                           <Trash2 className="size-3.5" />
                         </Button>

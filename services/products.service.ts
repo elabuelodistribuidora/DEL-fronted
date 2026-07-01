@@ -29,6 +29,8 @@ export type ProductInput = {
   onSale?: boolean
   salePrice?: number
   exclusive?: boolean
+  hasVariants?: boolean
+  variants?: { name: string; image?: string | null }[]
   active?: boolean
   categoriaId: string
   marcaId?: string | null

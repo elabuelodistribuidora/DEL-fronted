@@ -9,7 +9,12 @@ function buildQuery(filters: ProductFilters = {}): string {
   const params = new URLSearchParams()
   Object.entries(filters).forEach(([key, value]) => {
     if (value === undefined || value === null || value === '') return
-    params.set(key, String(value))
+    if (Array.isArray(value)) {
+      if (value.length === 0) return
+      params.set(key, value.join(','))
+    } else {
+      params.set(key, String(value))
+    }
   })
   const qs = params.toString()
   return qs ? `?${qs}` : ''

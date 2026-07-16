@@ -14,6 +14,7 @@ import {
 } from '@/components/ui/select'
 import { ProductCard } from '@/components/catalogo/product-card'
 import { SearchableSelect } from '@/components/ui/searchable-select'
+import { cn } from '@/lib/utils'
 import { useProducts } from '@/hooks/useProducts'
 import { categoriasService } from '@/services/categorias.service'
 import { marcasService } from '@/services/marcas.service'
@@ -30,6 +31,12 @@ export function ProductCatalog() {
   const [categorias, setCategorias] = useState<Categoria[]>([])
   const [marcas, setMarcas] = useState<Marca[]>([])
 
+  // Categorías de la marca seleccionada (botones debajo de "resultados").
+  const [marcaCategorias, setMarcaCategorias] = useState<Categoria[]>([])
+  const [selectedMarcaCategorias, setSelectedMarcaCategorias] = useState<
+    string[]
+  >([])
+
   // Catálogos de filtros
   useEffect(() => {
     categoriasService
@@ -42,6 +49,37 @@ export function ProductCatalog() {
       .catch(() => {})
   }, [])
 
+  // Aplica la selección de categorías-por-marca: guarda el estado local y
+  // actualiza el filtro de productos en el mismo lugar (sin un efecto aparte
+  // reaccionando a este estado, para no encadenar updates entre sí).
+  const applyMarcaCategorias = (ids: string[]) => {
+    setSelectedMarcaCategorias(ids)
+    updateFilter('categoriaIds', ids.length ? ids : undefined)
+  }
+
+  // Al cambiar la marca: traer sus categorías (opciones de los botones). El
+  // reseteo de la selección previa se hace en el propio onChange de marca,
+  // en la misma tanda que el resto de los filtros, para no generar un
+  // segundo refresh de productos aparte.
+  useEffect(() => {
+    const marcaSeleccionada = marcas.find((m) => m.slug === filters.marca)
+    if (!marcaSeleccionada) {
+      setMarcaCategorias((prev) => (prev.length ? [] : prev))
+      return
+    }
+    categoriasService
+      .byMarca(marcaSeleccionada.id)
+      .then(setMarcaCategorias)
+      .catch(() => setMarcaCategorias([]))
+  }, [filters.marca, marcas])
+
+  const toggleMarcaCategoria = (categoriaId: string) => {
+    const next = selectedMarcaCategorias.includes(categoriaId)
+      ? selectedMarcaCategorias.filter((id) => id !== categoriaId)
+      : [...selectedMarcaCategorias, categoriaId]
+    applyMarcaCategorias(next)
+  }
+
   // Debounce de búsqueda
   useEffect(() => {
     const t = setTimeout(() => {
@@ -52,12 +90,16 @@ export function ProductCatalog() {
   }, [query])
 
   const activeCount =
-    (filters.categoria ? 1 : 0) + (filters.marca ? 1 : 0) + (query ? 1 : 0)
+    (filters.categoria ? 1 : 0) +
+    (filters.marca ? 1 : 0) +
+    (query ? 1 : 0) +
+    (selectedMarcaCategorias.length > 0 ? 1 : 0)
 
   const clearAll = () => {
     setQuery('')
     updateFilter('categoria', undefined)
     updateFilter('marca', undefined)
+    applyMarcaCategorias([])
   }
 
   return (
@@ -84,7 +126,16 @@ export function ProductCatalog() {
           />
           <SearchableSelect
             value={filters.marca ?? ''}
-            onChange={(v) => updateFilter('marca', v || undefined)}
+            onChange={(v) => {
+              updateFilter('marca', v || undefined)
+              // Al elegir una marca, el filtro general de categoría puede no
+              // tener nada que ver: se limpia y pasa a manejarse con los
+              // botones de categoría-por-marca de abajo. Los botones de la
+              // marca anterior tampoco aplican más: se resetean acá mismo,
+              // en la misma tanda, para no disparar un segundo refresh.
+              if (v) updateFilter('categoria', undefined)
+              applyMarcaCategorias([])
+            }}
             options={marcas.map((m) => ({ label: m.name, value: m.slug }))}
             placeholder="Todas las marcas"
             clearLabel="Todas las marcas"
@@ -129,6 +180,30 @@ export function ProductCatalog() {
             </button>
           )}
         </div>
+
+        {marcaCategorias.length > 0 && (
+          <div className="flex flex-wrap gap-2">
+            {marcaCategorias.map((c) => {
+              const active = selectedMarcaCategorias.includes(c.id)
+              return (
+                <button
+                  key={c.id}
+                  type="button"
+                  onClick={() => toggleMarcaCategoria(c.id)}
+                  aria-pressed={active}
+                  className={cn(
+                    'rounded-full border px-3 py-1 text-xs font-medium transition-colors',
+                    active
+                      ? 'border-primary bg-primary text-primary-foreground'
+                      : 'border-border bg-background text-muted-foreground hover:bg-muted hover:text-foreground',
+                  )}
+                >
+                  {c.name}
+                </button>
+              )
+            })}
+          </div>
+        )}
       </div>
 
       {loading ? (

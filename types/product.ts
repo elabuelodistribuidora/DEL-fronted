@@ -72,6 +72,7 @@ export type Product = {
 export type ProductFilters = {
   search?: string
   categoria?: string // slug de categoría
+  categoriaIds?: string[] // ids de categoría (filtro múltiple, ej. por marca) — reemplaza a `categoria`
   marca?: string // slug de marca
   featured?: boolean
   onSale?: boolean

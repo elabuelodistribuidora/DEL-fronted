@@ -7,6 +7,10 @@ export const categoriasService = {
       `/categorias${includeInactive ? '?includeInactive=true' : ''}`,
     ),
 
+  /** Solo las categorías que tienen productos de esa marca (filtro por marca del catálogo). */
+  byMarca: (marcaId: string) =>
+    api.get<Categoria[]>(`/categorias?marcaId=${encodeURIComponent(marcaId)}`),
+
   // ── Admin ──
   create: (input: { name: string; description?: string }) =>
     api.post<Categoria>('/categorias', input),

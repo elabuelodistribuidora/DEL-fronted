@@ -21,7 +21,7 @@ export function SiteFooter() {
           />
           <FooterInfo
             icon={<Clock className="size-5" />}
-            title="Lun - Vie / 10:00 - 17:00"
+            title="Lun - Vie / 8:00 - 17:30"
             subtitle="Nuestros horarios"
           />
         </div>

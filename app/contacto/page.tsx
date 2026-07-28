@@ -53,7 +53,7 @@ export default function ContactoPage() {
                   { icon: Phone, label: 'Teléfono', value: '+54 9 11 4166-3289', href: 'tel:+5491141663289' },
                   { icon: Phone, label: 'Teléfono (alt.)', value: '+54 9 11 3198-4895', href: 'tel:+5491131984895' },
                   { icon: Mail, label: 'Email', value: 'elabuelodistribuidora@gmail.com', href: 'mailto:elabuelodistribuidora@gmail.com' },
-                  { icon: Clock, label: 'Horarios', value: 'Lun - Vie / 9:00 - 18:00', href: undefined },
+                  { icon: Clock, label: 'Horarios', value: 'Lun - Vie / 8:00 - 17:30', href: undefined },
                 ].map(({ icon: Icon, label, value, href }) => (
                   <div key={label} className="flex items-center gap-4 rounded-xl border border-border bg-card p-4">
                     <span className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">

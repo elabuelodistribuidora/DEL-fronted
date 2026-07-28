@@ -51,7 +51,7 @@ export function Hero() {
           <dl className="flex gap-8 pt-2">
             {[
               { value: '+6000', label: 'Productos' },
-              { value: '+15', label: 'Marcas líderes' },
+              { value: 'TODAS', label: 'las marcas líderes' },
               { value: '27 años', label: 'Trayectoria' },
             ].map((stat) => (
               <div key={stat.label}>

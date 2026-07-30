@@ -20,6 +20,7 @@ export type CreateClientPayload = {
   email: string
   name: string
   businessName?: string
+  clientNumber?: string
   password: string
   address: ClientAddressInput
 }
@@ -46,6 +47,7 @@ export const usersService = {
     payload: {
       name?: string
       businessName?: string
+      clientNumber?: string
       active?: boolean
       address?: ClientAddressInput
     },

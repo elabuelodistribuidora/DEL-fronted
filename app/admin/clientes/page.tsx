@@ -40,6 +40,7 @@ export default function AdminClientesPage() {
   const [email, setEmail] = useState('')
   const [name, setName] = useState('')
   const [businessName, setBusinessName] = useState('')
+  const [clientNumber, setClientNumber] = useState('')
   const [password, setPassword] = useState('')
   const [confirm, setConfirm] = useState('')
   const [address, setAddress] = useState<AddressValue>(emptyAddress)
@@ -78,6 +79,7 @@ export default function AdminClientesPage() {
     setEmail('')
     setName('')
     setBusinessName('')
+    setClientNumber('')
     setPassword('')
     setConfirm('')
     setAddress(emptyAddress)
@@ -90,6 +92,7 @@ export default function AdminClientesPage() {
     setEmail(u.email)
     setName(u.name)
     setBusinessName(u.businessName ?? '')
+    setClientNumber(u.clientNumber ?? '')
     const a = u.addresses?.[0]
     setAddress(
       a
@@ -139,6 +142,7 @@ export default function AdminClientesPage() {
         await usersService.updateClient(editing.id, {
           name,
           businessName: businessName || undefined,
+          clientNumber: clientNumber || undefined,
           address,
         })
       } else {
@@ -146,6 +150,7 @@ export default function AdminClientesPage() {
           email,
           name,
           businessName: businessName || undefined,
+          clientNumber: clientNumber || undefined,
           password,
           address,
         })
@@ -232,6 +237,14 @@ export default function AdminClientesPage() {
                   disabled={!!editing}
                 />
               </div>
+              <div className="space-y-2">
+                <Label>N° de cliente</Label>
+                <Input
+                  value={clientNumber}
+                  onChange={(e) => setClientNumber(e.target.value)}
+                  placeholder="1042"
+                />
+              </div>
             </div>
 
             {!editing && (
@@ -311,6 +324,7 @@ export default function AdminClientesPage() {
           <table className="data-table">
             <thead>
               <tr>
+                <th>N° cliente</th>
                 <th>Nombre comercial</th>
                 <th>Razón social</th>
                 <th>Email</th>
@@ -324,6 +338,9 @@ export default function AdminClientesPage() {
                 const a = u.addresses?.[0]
                 return (
                   <tr key={u.id}>
+                    <td className="text-muted-foreground">
+                      {u.clientNumber || '—'}
+                    </td>
                     <td className="font-medium">{u.name}</td>
                     <td className="text-muted-foreground">
                       {u.businessName || '—'}
@@ -392,7 +409,7 @@ export default function AdminClientesPage() {
               })}
               {clients.length === 0 && (
                 <tr>
-                  <td colSpan={6} className="py-8 text-center text-muted-foreground">
+                  <td colSpan={7} className="py-8 text-center text-muted-foreground">
                     No hay clientes.
                   </td>
                 </tr>

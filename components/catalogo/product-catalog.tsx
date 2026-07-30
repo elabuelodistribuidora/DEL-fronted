@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { useSearchParams } from 'next/navigation'
+import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 import { Search, Loader2, ChevronLeft, ChevronRight } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
@@ -20,12 +20,51 @@ import { categoriasService } from '@/services/categorias.service'
 import { marcasService } from '@/services/marcas.service'
 import type { Categoria, Marca, ProductFilters } from '@/types/product'
 
+// Recuerda la última búsqueda en esta pestaña: cubre no solo "atrás" del
+// navegador (ya resuelto con la URL) sino también volver por un link común
+// sin query string, como "Seguir comprando" desde el carrito.
+const FILTERS_STORAGE_KEY = 'catalogo:filtros'
+
+type StoredCatalogFilters = {
+  search?: string
+  categoria?: string
+  marca?: string
+  sort?: ProductFilters['sort']
+  categoriaIds?: string[]
+  page?: number
+}
+
+function readStoredFilters(): StoredCatalogFilters | null {
+  try {
+    const raw = sessionStorage.getItem(FILTERS_STORAGE_KEY)
+    return raw ? JSON.parse(raw) : null
+  } catch {
+    return null
+  }
+}
+
 export function ProductCatalog() {
+  const router = useRouter()
+  const pathname = usePathname()
   const searchParams = useSearchParams()
   const initialSearch = searchParams.get('search') ?? ''
+  const initialCategoriaIds =
+    searchParams.get('categoriaIds')?.split(',').filter(Boolean) ?? []
 
-  const { products, meta, loading, filters, updateFilter, setPage } =
-    useProducts({ page: 1, limit: 12, search: initialSearch || undefined })
+  // Se leen los filtros de la URL al montar, para que al volver con el botón
+  // "atrás" del navegador se restaure la misma búsqueda (no se resetea).
+  const { products, meta, loading, filters, setFilters, updateFilter, setPage } =
+    useProducts({
+      page: Number(searchParams.get('page')) || 1,
+      limit: 12,
+      search: initialSearch || undefined,
+      categoria: searchParams.get('categoria') ?? undefined,
+      marca: searchParams.get('marca') ?? undefined,
+      sort: (searchParams.get('sort') as ProductFilters['sort']) ?? undefined,
+      categoriaIds: initialCategoriaIds.length
+        ? initialCategoriaIds
+        : undefined,
+    })
 
   const [query, setQuery] = useState(initialSearch)
   const [categorias, setCategorias] = useState<Categoria[]>([])
@@ -35,7 +74,73 @@ export function ProductCatalog() {
   const [marcaCategorias, setMarcaCategorias] = useState<Categoria[]>([])
   const [selectedMarcaCategorias, setSelectedMarcaCategorias] = useState<
     string[]
-  >([])
+  >(initialCategoriaIds)
+
+  // Si se entra a /catalogo sin filtros en la URL (ej. el botón "Seguir
+  // comprando" del carrito, que linkea a /catalogo a secas), se restaura la
+  // última búsqueda guardada en esta pestaña. Corre una sola vez al montar;
+  // si la URL ya trae filtros (ej. "atrás" del navegador), esos mandan.
+  useEffect(() => {
+    if (searchParams.toString()) return
+    const stored = readStoredFilters()
+    if (!stored) return
+    if (stored.search) setQuery(stored.search)
+    if (stored.categoriaIds?.length)
+      setSelectedMarcaCategorias(stored.categoriaIds)
+    setFilters((prev) => ({
+      ...prev,
+      search: stored.search || undefined,
+      categoria: stored.categoria,
+      marca: stored.marca,
+      sort: stored.sort,
+      categoriaIds: stored.categoriaIds?.length ? stored.categoriaIds : undefined,
+      page: stored.page && stored.page > 1 ? stored.page : 1,
+    }))
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  // Refleja los filtros activos en la URL para que "volver atrás" desde el
+  // detalle de un producto restaure la misma búsqueda en vez de reiniciarla,
+  // y los guarda en sessionStorage para cubrir también los links comunes
+  // (sin query string) que vuelven a /catalogo.
+  useEffect(() => {
+    const params = new URLSearchParams()
+    if (query.trim()) params.set('search', query.trim())
+    if (filters.categoria) params.set('categoria', filters.categoria)
+    if (filters.marca) params.set('marca', filters.marca)
+    if (filters.sort) params.set('sort', filters.sort)
+    if (selectedMarcaCategorias.length)
+      params.set('categoriaIds', selectedMarcaCategorias.join(','))
+    if (filters.page && filters.page > 1)
+      params.set('page', String(filters.page))
+    const qs = params.toString()
+    router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false })
+    try {
+      sessionStorage.setItem(
+        FILTERS_STORAGE_KEY,
+        JSON.stringify({
+          search: query.trim() || undefined,
+          categoria: filters.categoria,
+          marca: filters.marca,
+          sort: filters.sort,
+          categoriaIds: selectedMarcaCategorias.length
+            ? selectedMarcaCategorias
+            : undefined,
+          page: filters.page,
+        } satisfies StoredCatalogFilters),
+      )
+    } catch {
+      // sessionStorage puede no estar disponible (modo privado, etc.)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [
+    query,
+    filters.categoria,
+    filters.marca,
+    filters.sort,
+    filters.page,
+    selectedMarcaCategorias,
+  ])
 
   // Catálogos de filtros
   useEffect(() => {
@@ -100,6 +205,11 @@ export function ProductCatalog() {
     updateFilter('categoria', undefined)
     updateFilter('marca', undefined)
     applyMarcaCategorias([])
+    try {
+      sessionStorage.removeItem(FILTERS_STORAGE_KEY)
+    } catch {
+      // sessionStorage puede no estar disponible (modo privado, etc.)
+    }
   }
 
   return (

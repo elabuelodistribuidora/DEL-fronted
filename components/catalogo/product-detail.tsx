@@ -106,6 +106,7 @@ export function ProductDetail({ slug }: { slug: string }) {
         image: product.image,
         imageUrl: mainImageUrl,
         inStock: product.inStock,
+        categoria: product.categoria,
         price: effectivePrice,
         variantName: activeModel?.name || undefined,
         variantImage: activeModel?.image ?? undefined,

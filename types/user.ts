@@ -4,6 +4,7 @@ export type User = {
   id: string
   name: string
   businessName?: string | null
+  clientNumber?: string | null
   email: string
   role: UserRole
   active?: boolean

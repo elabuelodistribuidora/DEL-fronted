@@ -7,7 +7,14 @@ import type { Product } from '@/types/product'
 
 type AddItemPayload = Pick<
   Product,
-  'id' | 'name' | 'slug' | 'sku' | 'image' | 'imageUrl' | 'inStock'
+  | 'id'
+  | 'name'
+  | 'slug'
+  | 'sku'
+  | 'image'
+  | 'imageUrl'
+  | 'inStock'
+  | 'categoria'
 > & {
   price: number
   /** Modelo/variante elegido (vacío = por defecto). */
@@ -58,6 +65,7 @@ export const useCartStore = create<CartStore>()(
                   image: product.variantImage ?? product.image,
                   imageUrl: product.imageUrl,
                   inStock: product.inStock,
+                  categoria: product.categoria,
                 },
                 variantName: variantName || undefined,
                 variantImage: product.variantImage ?? null,

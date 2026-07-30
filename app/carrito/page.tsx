@@ -22,6 +22,19 @@ export default function CarritoPage() {
   const { items, isEmpty, removeItem, updateQuantity, total } = useCart()
   const { isAuthenticated } = useAuth()
 
+  // Agrupados por categoría para que no salgan mezclados.
+  const groupedItems = items.reduce<Record<string, typeof items>>(
+    (acc, item) => {
+      const key = item.product.categoria?.name ?? 'Sin categoría'
+      acc[key] = acc[key] ? [...acc[key], item] : [item]
+      return acc
+    },
+    {},
+  )
+  const sortedCategorias = Object.keys(groupedItems).sort((a, b) =>
+    a.localeCompare(b),
+  )
+
   return (
     <div className="flex min-h-screen flex-col">
       <SiteHeader />
@@ -50,93 +63,102 @@ export default function CarritoPage() {
           ) : (
             <div className="mt-8 grid gap-8 lg:grid-cols-3">
               {/* Items */}
-              <div className="space-y-4 lg:col-span-2">
-                {items.map((item) => (
-                  <div key={item.id} className="cart-item">
-                    <div className="cart-item__image relative flex items-center justify-center overflow-hidden">
-                      {item.product.imageUrl ? (
-                        <ImageLoader
-                          src={item.product.imageUrl}
-                          alt={item.product.name}
-                          fill
-                          sizes="80px"
-                          className="object-cover"
-                        />
-                      ) : (
-                        <Package className="size-8 text-muted-foreground/30" />
-                      )}
-                    </div>
-                    <div className="flex flex-1 flex-col gap-2">
-                      <div className="flex items-start justify-between gap-2">
-                        <div>
-                          <p className="font-heading text-sm font-semibold text-foreground">
-                            {item.product.name}
-                          </p>
-                          {item.variantName && (
-                            <p className="text-xs font-medium text-primary">
-                              Modelo: {item.variantName}
-                            </p>
-                          )}
-                          {item.product.sku && (
-                            <p className="text-xs text-muted-foreground">
-                              Cód. {item.product.sku}
-                            </p>
-                          )}
-                          {!item.product.inStock && (
-                            <p className="text-xs text-destructive">Sin stock</p>
+              <div className="space-y-6 lg:col-span-2">
+                {sortedCategorias.map((categoria) => (
+                  <div key={categoria} className="space-y-4">
+                    <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                      {categoria}
+                    </p>
+                    {groupedItems[categoria].map((item) => (
+                      <div key={item.id} className="cart-item">
+                        <div className="cart-item__image relative flex items-center justify-center overflow-hidden">
+                          {item.product.imageUrl ? (
+                            <ImageLoader
+                              src={item.product.imageUrl}
+                              alt={item.product.name}
+                              fill
+                              sizes="80px"
+                              className="object-cover"
+                            />
+                          ) : (
+                            <Package className="size-8 text-muted-foreground/30" />
                           )}
                         </div>
-                        <p className="font-heading text-sm font-semibold text-foreground">
-                          {formatPrice(item.price * item.quantity)}
-                        </p>
+                        <div className="flex flex-1 flex-col gap-2">
+                          <div className="flex items-start justify-between gap-2">
+                            <div>
+                              <p className="font-heading text-sm font-semibold text-foreground">
+                                {item.product.name}
+                              </p>
+                              {item.variantName && (
+                                <p className="text-xs font-medium text-primary">
+                                  Modelo: {item.variantName}
+                                </p>
+                              )}
+                              {item.product.sku && (
+                                <p className="text-xs text-muted-foreground">
+                                  Cód. {item.product.sku}
+                                </p>
+                              )}
+                              {!item.product.inStock && (
+                                <p className="text-xs text-destructive">
+                                  Sin stock
+                                </p>
+                              )}
+                            </div>
+                            <p className="font-heading text-sm font-semibold text-foreground">
+                              {formatPrice(item.price * item.quantity)}
+                            </p>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <Button
+                              variant="outline"
+                              size="icon"
+                              className="size-7 rounded-full"
+                              onClick={() =>
+                                updateQuantity(item.id, item.quantity - 1)
+                              }
+                            >
+                              <Minus className="size-3" />
+                            </Button>
+                            <input
+                              type="number"
+                              min={1}
+                              value={item.quantity}
+                              onChange={(e) => {
+                                const n = parseInt(e.target.value, 10)
+                                if (Number.isInteger(n) && n >= 1) {
+                                  updateQuantity(item.id, n)
+                                }
+                              }}
+                              className="h-7 w-14 rounded-md border border-border bg-background text-center text-sm font-medium outline-none focus-visible:ring-2 focus-visible:ring-ring/50 [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+                              aria-label="Cantidad"
+                            />
+                            <Button
+                              variant="outline"
+                              size="icon"
+                              className="size-7 rounded-full"
+                              onClick={() =>
+                                updateQuantity(item.id, item.quantity + 1)
+                              }
+                            >
+                              <Plus className="size-3" />
+                            </Button>
+                            <span className="text-xs text-muted-foreground">
+                              {formatPrice(item.price)} c/u
+                            </span>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="ml-auto size-7 text-destructive hover:text-destructive"
+                              onClick={() => removeItem(item.id)}
+                            >
+                              <Trash2 className="size-3.5" />
+                            </Button>
+                          </div>
+                        </div>
                       </div>
-                      <div className="flex items-center gap-2">
-                        <Button
-                          variant="outline"
-                          size="icon"
-                          className="size-7 rounded-full"
-                          onClick={() =>
-                            updateQuantity(item.id, item.quantity - 1)
-                          }
-                        >
-                          <Minus className="size-3" />
-                        </Button>
-                        <input
-                          type="number"
-                          min={1}
-                          value={item.quantity}
-                          onChange={(e) => {
-                            const n = parseInt(e.target.value, 10)
-                            if (Number.isInteger(n) && n >= 1) {
-                              updateQuantity(item.id, n)
-                            }
-                          }}
-                          className="h-7 w-14 rounded-md border border-border bg-background text-center text-sm font-medium outline-none focus-visible:ring-2 focus-visible:ring-ring/50 [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
-                          aria-label="Cantidad"
-                        />
-                        <Button
-                          variant="outline"
-                          size="icon"
-                          className="size-7 rounded-full"
-                          onClick={() =>
-                            updateQuantity(item.id, item.quantity + 1)
-                          }
-                        >
-                          <Plus className="size-3" />
-                        </Button>
-                        <span className="text-xs text-muted-foreground">
-                          {formatPrice(item.price)} c/u
-                        </span>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="ml-auto size-7 text-destructive hover:text-destructive"
-                          onClick={() => removeItem(item.id)}
-                        >
-                          <Trash2 className="size-3.5" />
-                        </Button>
-                      </div>
-                    </div>
+                    ))}
                   </div>
                 ))}
               </div>

@@ -4,7 +4,14 @@ export type CartItem = {
   id: string
   product: Pick<
     Product,
-    'id' | 'name' | 'slug' | 'sku' | 'image' | 'imageUrl' | 'inStock'
+    | 'id'
+    | 'name'
+    | 'slug'
+    | 'sku'
+    | 'image'
+    | 'imageUrl'
+    | 'inStock'
+    | 'categoria'
   >
   /** Modelo/variante elegido (vacío = por defecto). */
   variantName?: string

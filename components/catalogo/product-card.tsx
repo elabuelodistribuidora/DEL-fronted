@@ -49,6 +49,7 @@ export function ProductCard({ product }: { product: Product }) {
         image: product.image,
         imageUrl: product.imageUrl,
         inStock: product.inStock,
+        categoria: product.categoria,
         price: effectivePrice,
       },
       1,

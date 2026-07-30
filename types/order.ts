@@ -22,6 +22,8 @@ export type OrderItem = {
   productId: string
   code?: string | null
   name: string
+  categoria?: string | null
+  variantName?: string | null
   image?: string | null
   unitPrice: number
   quantity: number
@@ -41,7 +43,13 @@ export type Order = {
   notes?: string | null
   createdAt: string
   updatedAt: string
-  user?: { id: string; name: string; email: string }
+  user?: {
+    id: string
+    name: string
+    email: string
+    businessName?: string | null
+    clientNumber?: string | null
+  }
 }
 
 export const ORDER_STATUS_LABELS: Record<OrderStatus, string> = {

@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
+import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 import {
   Loader2,
   Search,
@@ -26,15 +27,46 @@ import { formatPrice } from '@/utils/formatters'
 
 const PAGE_SIZE = 20
 
+// Recuerda la última búsqueda en esta pestaña: cubre no solo "atrás" del
+// navegador (ya resuelto con la URL) sino también volver por un link común
+// sin query string, como "Cancelar"/guardar desde editar un producto.
+const FILTERS_STORAGE_KEY = 'admin-productos:filtros'
+
+type StoredProductFilters = {
+  search?: string
+  categoria?: string
+  marca?: string
+  page?: number
+}
+
+function readStoredFilters(): StoredProductFilters | null {
+  try {
+    const raw = sessionStorage.getItem(FILTERS_STORAGE_KEY)
+    return raw ? JSON.parse(raw) : null
+  } catch {
+    return null
+  }
+}
+
 export default function AdminProductosPage() {
+  const router = useRouter()
+  const pathname = usePathname()
+  const searchParams = useSearchParams()
+
   const [products, setProducts] = useState<Product[]>([])
   const [loading, setLoading] = useState(true)
-  const [search, setSearch] = useState('')
-  const [filterCategoria, setFilterCategoria] = useState('')
-  const [filterMarca, setFilterMarca] = useState('')
+  // Se leen los filtros de la URL al montar, para que al volver con el botón
+  // "atrás" del navegador (ej. desde editar un producto) no se reinicien.
+  const [search, setSearch] = useState(searchParams.get('search') ?? '')
+  const [filterCategoria, setFilterCategoria] = useState(
+    searchParams.get('categoria') ?? '',
+  )
+  const [filterMarca, setFilterMarca] = useState(
+    searchParams.get('marca') ?? '',
+  )
   const [categorias, setCategorias] = useState<Categoria[]>([])
   const [marcas, setMarcas] = useState<Marca[]>([])
-  const [page, setPage] = useState(1)
+  const [page, setPage] = useState(Number(searchParams.get('page')) || 1)
   const [meta, setMeta] = useState({ total: 0, page: 1, totalPages: 1 })
   const [busyId, setBusyId] = useState<string | null>(null)
   const [importing, setImporting] = useState(false)
@@ -67,8 +99,20 @@ export default function AdminProductosPage() {
     marcasService.list(true).then(setMarcas).catch(() => {})
   }, [])
 
-  // Volver a página 1 al cambiar búsqueda o filtros
+  // Volver a página 1 al cambiar búsqueda o filtros (no en el montaje inicial,
+  // para no pisar la página que traía la URL al volver de "Editar", ni la
+  // que se restaura desde sessionStorage un poco más abajo).
+  const didMount = useRef(false)
+  const skipNextPageReset = useRef(false)
   useEffect(() => {
+    if (!didMount.current) {
+      didMount.current = true
+      return
+    }
+    if (skipNextPageReset.current) {
+      skipNextPageReset.current = false
+      return
+    }
     const t = setTimeout(() => setPage(1), 300)
     return () => clearTimeout(t)
   }, [search, filterCategoria, filterMarca])
@@ -76,6 +120,51 @@ export default function AdminProductosPage() {
   useEffect(() => {
     load()
   }, [load])
+
+  // Si se entra a /admin/productos sin filtros en la URL (ej. al guardar o
+  // cancelar en "Editar", que vuelven a /admin/productos a secas), se
+  // restaura la última búsqueda guardada en esta pestaña. Corre una sola vez
+  // al montar; si la URL ya trae filtros (ej. "atrás" del navegador), esos
+  // mandan.
+  useEffect(() => {
+    if (searchParams.toString()) return
+    const stored = readStoredFilters()
+    if (!stored) return
+    skipNextPageReset.current = true
+    if (stored.search) setSearch(stored.search)
+    if (stored.categoria) setFilterCategoria(stored.categoria)
+    if (stored.marca) setFilterMarca(stored.marca)
+    if (stored.page && stored.page > 1) setPage(stored.page)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  // Refleja los filtros activos en la URL para que "volver atrás" desde
+  // editar un producto restaure la misma búsqueda en vez de reiniciarla, y
+  // los guarda en sessionStorage para cubrir también los links comunes (sin
+  // query string) que vuelven a /admin/productos.
+  useEffect(() => {
+    const params = new URLSearchParams()
+    if (search.trim()) params.set('search', search.trim())
+    if (filterCategoria) params.set('categoria', filterCategoria)
+    if (filterMarca) params.set('marca', filterMarca)
+    if (page > 1) params.set('page', String(page))
+    const qs = params.toString()
+    router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false })
+    try {
+      sessionStorage.setItem(
+        FILTERS_STORAGE_KEY,
+        JSON.stringify({
+          search: search.trim() || undefined,
+          categoria: filterCategoria || undefined,
+          marca: filterMarca || undefined,
+          page,
+        } satisfies StoredProductFilters),
+      )
+    } catch {
+      // sessionStorage puede no estar disponible (modo privado, etc.)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [search, filterCategoria, filterMarca, page])
 
   const handleToggleActive = async (p: Product) => {
     setBusyId(p.id)

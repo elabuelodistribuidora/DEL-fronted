@@ -114,6 +114,19 @@ export function AdminOrderDetail({ id }: { id: string }) {
 
   const addr = order.shippingAddress
 
+  // Agrupados por categoría para que no salgan mezclados (pedido del cliente).
+  const groupedItems = order.items.reduce<Record<string, typeof order.items>>(
+    (acc, item) => {
+      const key = item.categoria || 'Sin categoría'
+      acc[key] = acc[key] ? [...acc[key], item] : [item]
+      return acc
+    },
+    {},
+  )
+  const sortedCategorias = Object.keys(groupedItems).sort((a, b) =>
+    a.localeCompare(b),
+  )
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -152,8 +165,12 @@ export function AdminOrderDetail({ id }: { id: string }) {
             Orden #{order.id}
           </h1>
           <p className="mt-1 text-sm text-muted-foreground">
-            {order.user?.name} · {order.user?.email} ·{' '}
-            {formatDateTime(order.createdAt)}
+            {order.user?.name}
+            {order.user?.businessName ? ` (${order.user.businessName})` : ''}
+            {order.user?.clientNumber
+              ? ` · N° cliente ${order.user.clientNumber}`
+              : ''}{' '}
+            · {order.user?.email} · {formatDateTime(order.createdAt)}
           </p>
         </div>
         <span className={`status-badge status-badge--${order.status}`}>
@@ -240,22 +257,36 @@ export function AdminOrderDetail({ id }: { id: string }) {
         <h2 className="font-heading text-base font-semibold text-foreground">
           Productos
         </h2>
-        <div className="mt-4 divide-y divide-border">
-          {order.items.map((item) => (
-            <div
-              key={item.id}
-              className="flex items-center justify-between py-3 text-sm"
-            >
-              <div>
-                <p className="font-medium text-foreground">{item.name}</p>
-                <p className="text-xs text-muted-foreground">
-                  {item.code ? `Cód. ${item.code} · ` : ''}
-                  {item.quantity} × {formatPrice(item.unitPrice)}
-                </p>
+        <div className="mt-4 space-y-4">
+          {sortedCategorias.map((categoria) => (
+            <div key={categoria}>
+              <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                {categoria}
+              </p>
+              <div className="mt-1 divide-y divide-border">
+                {groupedItems[categoria].map((item) => (
+                  <div
+                    key={item.id}
+                    className="flex items-center justify-between py-3 text-sm"
+                  >
+                    <div>
+                      <p className="font-medium text-foreground">
+                        {item.name}
+                        {item.variantName
+                          ? ` — Modelo: ${item.variantName}`
+                          : ''}
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        {item.code ? `Cód. ${item.code} · ` : ''}
+                        {item.quantity} × {formatPrice(item.unitPrice)}
+                      </p>
+                    </div>
+                    <span className="font-medium">
+                      {formatPrice(item.unitPrice * item.quantity)}
+                    </span>
+                  </div>
+                ))}
               </div>
-              <span className="font-medium">
-                {formatPrice(item.unitPrice * item.quantity)}
-              </span>
             </div>
           ))}
         </div>

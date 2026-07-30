@@ -1,5 +1,5 @@
 import { api } from '@/utils/api'
-import type { User } from '@/types/user'
+import type { ClientStatus, User } from '@/types/user'
 import type { Paginated } from '@/types/product'
 
 export type ClientAddressInput = {
@@ -32,9 +32,9 @@ export const usersService = {
     api.patch<User>('/users/me', payload),
 
   // ── Admin: gestión de clientes ──
-  list: (page = 1, limit = 20, search?: string) =>
+  list: (page = 1, limit = 20, search?: string, status?: ClientStatus) =>
     api.get<Paginated<User>>(
-      `/users?page=${page}&limit=${limit}${search ? `&search=${encodeURIComponent(search)}` : ''}`,
+      `/users?page=${page}&limit=${limit}${search ? `&search=${encodeURIComponent(search)}` : ''}${status ? `&status=${status}` : ''}`,
     ),
 
   getOne: (id: string) => api.get<User>(`/users/${id}`),
@@ -58,6 +58,10 @@ export const usersService = {
 
   setActive: (id: string, active: boolean) =>
     api.patch<User>(`/users/${id}/active`, { active }),
+
+  approve: (id: string) => api.patch<User>(`/users/${id}/approve`, {}),
+
+  reject: (id: string) => api.patch<User>(`/users/${id}/reject`, {}),
 
   remove: (id: string) => api.delete<{ deleted: boolean }>(`/users/${id}`),
 }

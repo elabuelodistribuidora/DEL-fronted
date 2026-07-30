@@ -1,5 +1,12 @@
 export type UserRole = 'customer' | 'admin'
 
+/**
+ * pending: se registró solo, esperando aprobación (puede loguear, no ve
+ * precios/catálogos/PDF). approved: alta por el admin, o ya aprobado.
+ * rejected: el admin lo rechazó (además queda inactivo).
+ */
+export type ClientStatus = 'pending' | 'approved' | 'rejected'
+
 export type User = {
   id: string
   name: string
@@ -7,6 +14,7 @@ export type User = {
   clientNumber?: string | null
   email: string
   role: UserRole
+  status?: ClientStatus
   active?: boolean
   createdAt?: string
   addresses?: UserAddress[]

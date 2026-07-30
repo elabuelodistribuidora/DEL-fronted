@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { Package, Lock, ShoppingCart, Check } from 'lucide-react'
+import { Package, Lock, ShoppingCart, Check, Clock } from 'lucide-react'
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -12,7 +12,7 @@ import { useCart } from '@/hooks/useCart'
 import { formatPrice } from '@/utils/formatters'
 
 export function ProductCard({ product }: { product: Product }) {
-  const { isAuthenticated } = useAuth()
+  const { canSeeGatedContent, isPendingApproval } = useAuth()
   const { addItem } = useCart()
   const [added, setAdded] = useState(false)
 
@@ -125,7 +125,7 @@ export function ProductCard({ product }: { product: Product }) {
         </Link>
 
         <div className="flex items-center justify-between gap-2 border-t border-border pt-3">
-          {isAuthenticated ? (
+          {canSeeGatedContent ? (
             <>
               {onSale ? (
                 <span className="flex flex-col leading-tight">
@@ -173,6 +173,11 @@ export function ProductCard({ product }: { product: Product }) {
                 </Button>
               )}
             </>
+          ) : isPendingApproval ? (
+            <span className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
+              <Clock className="size-3.5" />
+              Cuenta en revisión
+            </span>
           ) : (
             <>
               <span className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground">

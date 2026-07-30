@@ -11,7 +11,8 @@ import { productsService } from '@/services/products.service'
  */
 export function PriceListBanner() {
   const { user, isAuthenticated, hydrated } = useAuth()
-  const isCustomer = isAuthenticated && user?.role === 'customer'
+  const isCustomer =
+    isAuthenticated && user?.role === 'customer' && user?.status === 'approved'
   const [url, setUrl] = useState<string | null>(null)
 
   useEffect(() => {

@@ -5,6 +5,7 @@ import Link from 'next/link'
 import {
   Package,
   Lock,
+  Clock,
   ArrowLeft,
   ShoppingCart,
   Minus,
@@ -23,7 +24,7 @@ import type { Product } from '@/types/product'
 import { ProductCard } from './product-card'
 
 export function ProductDetail({ slug }: { slug: string }) {
-  const { isAuthenticated } = useAuth()
+  const { canSeeGatedContent, isPendingApproval } = useAuth()
   const { addItem } = useCart()
   const [product, setProduct] = useState<Product | null>(null)
   const [loading, setLoading] = useState(true)
@@ -221,7 +222,7 @@ export function ProductDetail({ slug }: { slug: string }) {
           )}
 
           <div className="rounded-xl border border-border bg-card p-5">
-            {isAuthenticated ? (
+            {canSeeGatedContent ? (
               <>
                 {onSale ? (
                   <div>
@@ -276,6 +277,13 @@ export function ProductDetail({ slug }: { slug: string }) {
                   </Button>
                 </div>
               </>
+            ) : isPendingApproval ? (
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <Clock className="size-4" />
+                <span>
+                  Tu cuenta está en revisión: en breve vas a poder ver precios.
+                </span>
+              </div>
             ) : (
               <>
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">

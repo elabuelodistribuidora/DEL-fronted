@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Eye, EyeOff } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -8,10 +9,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { useAuth } from '@/hooks/useAuth'
 
-/**
- * Formulario de inicio de sesión. El registro es solo por el admin
- * (no hay alta pública), por eso no hay pestaña de registro.
- */
+/** Formulario de inicio de sesión (el alta pública vive en /cuenta/registro). */
 export function AccountTabs() {
   const [showPassword, setShowPassword] = useState(false)
   const [loading, setLoading] = useState(false)
@@ -103,12 +101,26 @@ export function AccountTabs() {
           >
             Acceder
           </Button>
+          <p className="text-center text-sm">
+            <Link
+              href="/cuenta/recuperar"
+              className="font-medium text-primary hover:underline"
+            >
+              ¿Olvidaste tu contraseña?
+            </Link>
+          </p>
         </form>
       </div>
 
       <p className="mt-4 text-center text-xs text-muted-foreground">
-        ¿No tenés cuenta? Las cuentas mayoristas las habilita la distribuidora.
-        Escribinos para solicitar acceso.
+        ¿No tenés cuenta?{' '}
+        <Link
+          href="/cuenta/registro"
+          className="font-medium text-primary hover:underline"
+        >
+          Creá una cuenta mayorista
+        </Link>
+        , queda pendiente de aprobación.
       </p>
     </div>
   )

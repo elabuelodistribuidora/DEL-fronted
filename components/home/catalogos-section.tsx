@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { BookOpen, Lock, ExternalLink } from 'lucide-react'
+import { BookOpen, Lock, Clock, ExternalLink } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { ImageLoader } from '@/components/ui/image-loader'
 import { catalogosService, type CatalogoPublic } from '@/services/catalogos.service'
@@ -10,7 +10,7 @@ import { useAuth } from '@/hooks/useAuth'
 
 export function CatalogosSection({ showEmpty = false }: { showEmpty?: boolean }) {
   const router = useRouter()
-  const { isAuthenticated } = useAuth()
+  const { isAuthenticated, canSeeGatedContent, isPendingApproval } = useAuth()
   const [catalogos, setCatalogos] = useState<CatalogoPublic[]>([])
   const [openingId, setOpeningId] = useState<string | null>(null)
 
@@ -32,6 +32,12 @@ export function CatalogosSection({ showEmpty = false }: { showEmpty?: boolean })
               Iniciá sesión como cliente para acceder a los catálogos.
             </p>
           )}
+          {isPendingApproval && (
+            <p className="mb-4 flex items-center gap-1.5 text-sm text-muted-foreground">
+              <Clock className="size-3.5" />
+              Tu cuenta está en revisión: en breve vas a poder acceder.
+            </p>
+          )}
           <p className="text-muted-foreground">
             No hay catálogos disponibles por el momento.
           </p>
@@ -45,6 +51,7 @@ export function CatalogosSection({ showEmpty = false }: { showEmpty?: boolean })
       router.push('/cuenta?callbackUrl=/catalogo')
       return
     }
+    if (!canSeeGatedContent) return // pendiente de aprobación
     setOpeningId(id)
     try {
       const { url } = await catalogosService.getLink(id)
@@ -70,6 +77,12 @@ export function CatalogosSection({ showEmpty = false }: { showEmpty?: boolean })
             <p className="mt-2 flex items-center gap-1.5 text-sm text-muted-foreground">
               <Lock className="size-3.5" />
               Iniciá sesión como cliente para acceder a los catálogos.
+            </p>
+          )}
+          {isPendingApproval && (
+            <p className="mt-2 flex items-center gap-1.5 text-sm text-muted-foreground">
+              <Clock className="size-3.5" />
+              Tu cuenta está en revisión: en breve vas a poder acceder.
             </p>
           )}
         </div>
@@ -101,12 +114,18 @@ export function CatalogosSection({ showEmpty = false }: { showEmpty?: boolean })
                   size="sm"
                   className="rounded-full text-xs"
                   loading={openingId === c.id}
+                  disabled={isPendingApproval}
                   onClick={() => open(c.id)}
                 >
-                  {isAuthenticated ? (
+                  {canSeeGatedContent ? (
                     <>
                       <ExternalLink className="size-3.5" />
                       Ver catálogo
+                    </>
+                  ) : isPendingApproval ? (
+                    <>
+                      <Clock className="size-3.5" />
+                      En revisión
                     </>
                   ) : (
                     <>

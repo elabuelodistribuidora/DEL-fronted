@@ -1,10 +1,10 @@
 'use client'
 
 import { useAuthStore } from '@/store/authStore'
-import { authService } from '@/services/auth.service'
+import { authService, type RegisterPayload } from '@/services/auth.service'
 
 /**
- * Hook de autenticación. Envuelve el login y persiste la sesión
+ * Hook de autenticación. Envuelve el login/registro y persiste la sesión
  * (token + user) en el authStore.
  */
 export function useAuth() {
@@ -20,13 +20,30 @@ export function useAuth() {
     return res.user
   }
 
+  const register = async (payload: RegisterPayload) => {
+    const res = await authService.register(payload)
+    setSession(res.token, res.user)
+    return res.user
+  }
+
+  // Clientes autoregistrados que todavía no fueron aprobados por el admin
+  // pueden loguear, pero no ven precios/catálogos/PDF. Los admins nunca
+  // están sujetos a esto.
+  const isPendingApproval =
+    user?.role === 'customer' && user?.status === 'pending'
+  const canSeeGatedContent =
+    Boolean(token) && (user?.role === 'admin' || user?.status === 'approved')
+
   return {
     token,
     user,
     hydrated,
     isAuthenticated: Boolean(token),
     isAdmin: user?.role === 'admin',
+    isPendingApproval,
+    canSeeGatedContent,
     login,
+    register,
     logout,
   }
 }

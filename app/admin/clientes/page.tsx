@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useEffect, useState } from 'react'
+import { Fragment, useCallback, useEffect, useState } from 'react'
 import {
   Plus,
   Loader2,
@@ -11,6 +11,9 @@ import {
   Search,
   ChevronLeft,
   ChevronRight,
+  Check,
+  Ban,
+  MapPin,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -23,16 +26,33 @@ import {
 import { PasswordFields } from '@/components/cuenta/password-fields'
 import { usersService } from '@/services/users.service'
 import { isPasswordValid } from '@/utils/password'
-import type { User } from '@/types/user'
+import type { ClientStatus, User } from '@/types/user'
+import { cn } from '@/lib/utils'
 
 const PAGE_SIZE = 20
+
+const STATUS_FILTERS: { value: ClientStatus | 'all'; label: string }[] = [
+  { value: 'all', label: 'Todos' },
+  { value: 'pending', label: 'Pendientes' },
+  { value: 'approved', label: 'Aprobados' },
+  { value: 'rejected', label: 'Rechazados' },
+]
+
+const STATUS_LABELS: Record<ClientStatus, string> = {
+  pending: 'Pendiente',
+  approved: 'Aprobado',
+  rejected: 'Rechazado',
+}
 
 export default function AdminClientesPage() {
   const [clients, setClients] = useState<User[]>([])
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
+  const [statusFilter, setStatusFilter] = useState<ClientStatus | 'all'>('all')
   const [page, setPage] = useState(1)
   const [meta, setMeta] = useState({ total: 0, page: 1, totalPages: 1 })
+  const [expandedId, setExpandedId] = useState<string | null>(null)
+  const [actioningId, setActioningId] = useState<string | null>(null)
 
   // Form de alta/edición
   const [showForm, setShowForm] = useState(false)
@@ -56,19 +76,24 @@ export default function AdminClientesPage() {
   const load = useCallback(async () => {
     setLoading(true)
     try {
-      const res = await usersService.list(page, PAGE_SIZE, search.trim() || undefined)
+      const res = await usersService.list(
+        page,
+        PAGE_SIZE,
+        search.trim() || undefined,
+        statusFilter === 'all' ? undefined : statusFilter,
+      )
       // Solo clientes (no admins)
       setClients(res.data.filter((u) => u.role === 'customer'))
       setMeta(res.meta)
     } finally {
       setLoading(false)
     }
-  }, [page, search])
+  }, [page, search, statusFilter])
 
   useEffect(() => {
     const t = setTimeout(() => setPage(1), 300)
     return () => clearTimeout(t)
-  }, [search])
+  }, [search, statusFilter])
 
   useEffect(() => {
     load()
@@ -161,6 +186,32 @@ export default function AdminClientesPage() {
       setError(err instanceof Error ? err.message : 'No se pudo guardar')
     } finally {
       setSaving(false)
+    }
+  }
+
+  const approve = async (id: string) => {
+    setActioningId(id)
+    try {
+      await usersService.approve(id)
+      await load()
+    } finally {
+      setActioningId(null)
+    }
+  }
+
+  const reject = async (id: string, name: string) => {
+    if (
+      !window.confirm(
+        `¿Rechazar a "${name}"? Va a quedar inactivo y no va a poder iniciar sesión.`,
+      )
+    )
+      return
+    setActioningId(id)
+    try {
+      await usersService.reject(id)
+      await load()
+    } finally {
+      setActioningId(null)
     }
   }
 
@@ -305,14 +356,32 @@ export default function AdminClientesPage() {
         </div>
       )}
 
-      <div className="relative max-w-sm">
-        <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-        <Input
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          placeholder="Buscar por nombre o email..."
-          className="pl-9"
-        />
+      <div className="flex flex-wrap items-center gap-3">
+        <div className="relative max-w-sm flex-1">
+          <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+          <Input
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Buscar por nombre o email..."
+            className="pl-9"
+          />
+        </div>
+        <div className="flex gap-1 rounded-full border border-border bg-muted/40 p-1">
+          {STATUS_FILTERS.map((f) => (
+            <button
+              key={f.value}
+              onClick={() => setStatusFilter(f.value)}
+              className={cn(
+                'rounded-full px-3 py-1 text-xs font-medium transition-colors',
+                statusFilter === f.value
+                  ? 'bg-primary text-primary-foreground'
+                  : 'text-muted-foreground hover:text-foreground',
+              )}
+            >
+              {f.label}
+            </button>
+          ))}
+        </div>
       </div>
 
       <div className="overflow-x-auto rounded-xl border border-border bg-card">
@@ -329,6 +398,7 @@ export default function AdminClientesPage() {
                 <th>Razón social</th>
                 <th>Email</th>
                 <th>Ubicación</th>
+                <th>Aprobación</th>
                 <th>Estado</th>
                 <th></th>
               </tr>
@@ -336,8 +406,11 @@ export default function AdminClientesPage() {
             <tbody>
               {clients.map((u) => {
                 const a = u.addresses?.[0]
+                const status = u.status ?? 'approved'
+                const expanded = expandedId === u.id
                 return (
-                  <tr key={u.id}>
+                  <Fragment key={u.id}>
+                  <tr>
                     <td className="text-muted-foreground">
                       {u.clientNumber || '—'}
                     </td>
@@ -347,7 +420,25 @@ export default function AdminClientesPage() {
                     </td>
                     <td>{u.email}</td>
                     <td className="text-muted-foreground">
-                      {a ? `${a.city}, ${a.province}` : '—'}
+                      <button
+                        onClick={() => setExpandedId(expanded ? null : u.id)}
+                        className="inline-flex items-center gap-1 hover:text-foreground hover:underline"
+                      >
+                        <MapPin className="size-3" />
+                        {a ? `${a.city}, ${a.province}` : '—'}
+                      </button>
+                    </td>
+                    <td>
+                      <span
+                        className={cn(
+                          'status-badge',
+                          status === 'approved' && 'status-badge--delivered',
+                          status === 'pending' && 'status-badge--pending',
+                          status === 'rejected' && 'status-badge--cancelled',
+                        )}
+                      >
+                        {STATUS_LABELS[status]}
+                      </span>
                     </td>
                     <td>
                       <button
@@ -362,7 +453,25 @@ export default function AdminClientesPage() {
                       </button>
                     </td>
                     <td>
-                      <div className="flex gap-3">
+                      <div className="flex flex-wrap items-center gap-3">
+                        {status === 'pending' && (
+                          <>
+                            <button
+                              onClick={() => approve(u.id)}
+                              disabled={actioningId === u.id}
+                              className="inline-flex items-center gap-1 text-xs font-medium text-green-700 hover:underline disabled:opacity-50"
+                            >
+                              <Check className="size-3" /> Aprobar
+                            </button>
+                            <button
+                              onClick={() => reject(u.id, u.name)}
+                              disabled={actioningId === u.id}
+                              className="inline-flex items-center gap-1 text-xs font-medium text-destructive hover:underline disabled:opacity-50"
+                            >
+                              <Ban className="size-3" /> Rechazar
+                            </button>
+                          </>
+                        )}
                         <button
                           onClick={() => openEdit(u)}
                           className="inline-flex items-center gap-1 text-xs text-primary hover:underline"
@@ -405,11 +514,39 @@ export default function AdminClientesPage() {
                       </div>
                     </td>
                   </tr>
+                  {expanded && (
+                    <tr>
+                      <td colSpan={8} className="bg-muted/30">
+                        {a ? (
+                          <div className="grid gap-x-6 gap-y-1 py-2 text-xs text-muted-foreground sm:grid-cols-3">
+                            <span>
+                              <strong className="text-foreground">Dirección:</strong>{' '}
+                              {a.street} {a.number}
+                              {a.floor ? `, ${a.floor}` : ''}
+                            </span>
+                            <span>
+                              <strong className="text-foreground">CP:</strong>{' '}
+                              {a.postalCode}
+                            </span>
+                            <span>
+                              <strong className="text-foreground">Tel:</strong>{' '}
+                              {a.phone || '—'}
+                            </span>
+                          </div>
+                        ) : (
+                          <p className="py-2 text-xs text-muted-foreground">
+                            Sin dirección cargada.
+                          </p>
+                        )}
+                      </td>
+                    </tr>
+                  )}
+                  </Fragment>
                 )
               })}
               {clients.length === 0 && (
                 <tr>
-                  <td colSpan={7} className="py-8 text-center text-muted-foreground">
+                  <td colSpan={8} className="py-8 text-center text-muted-foreground">
                     No hay clientes.
                   </td>
                 </tr>

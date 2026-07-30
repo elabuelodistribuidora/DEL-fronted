@@ -138,12 +138,21 @@ export function SiteHeader() {
               </Link>
             </Button>
           ) : (
-            <Button asChild className="rounded-full">
-              <Link href="/cuenta">
-                <User className="size-4" />
-                Ingresar
-              </Link>
-            </Button>
+            <>
+              <Button
+                variant="outline"
+                asChild
+                className="hidden rounded-full sm:inline-flex"
+              >
+                <Link href="/cuenta/registro">Crear cuenta</Link>
+              </Button>
+              <Button asChild className="rounded-full">
+                <Link href="/cuenta">
+                  <User className="size-4" />
+                  Ingresar
+                </Link>
+              </Button>
+            </>
           )}
 
           {isAuthenticated && (
@@ -217,6 +226,15 @@ export function SiteHeader() {
                 >
                   Mi cuenta
                 </Link>
+                {!isAuthenticated && (
+                  <Link
+                    href="/cuenta/registro"
+                    onClick={() => setOpen(false)}
+                    className="rounded-md px-3 py-2.5 text-base font-medium text-primary hover:bg-muted"
+                  >
+                    Crear cuenta
+                  </Link>
+                )}
                 {isAuthenticated && (
                   <button
                     onClick={() => {

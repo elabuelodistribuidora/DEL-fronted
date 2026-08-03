@@ -9,6 +9,7 @@ import {
   ChevronLeft,
   ChevronRight,
   Upload,
+  Eye,
   EyeOff,
   Package,
 } from 'lucide-react'
@@ -166,10 +167,10 @@ export default function AdminProductosPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [search, filterCategoria, filterMarca, page])
 
-  const handleToggleActive = async (p: Product) => {
+  const handleToggleHidden = async (p: Product) => {
     setBusyId(p.id)
     try {
-      await productsService.update(p.id, { active: !p.active })
+      await productsService.update(p.id, { hidden: !p.hidden })
       await load()
     } finally {
       setBusyId(null)
@@ -320,7 +321,7 @@ export default function AdminProductosPage() {
                 <th>Marca</th>
                 <th>Precio</th>
                 <th>Stock</th>
-                <th>Estado</th>
+                <th>Visibilidad</th>
                 <th></th>
               </tr>
             </thead>
@@ -363,9 +364,9 @@ export default function AdminProductosPage() {
                   </td>
                   <td>
                     <span
-                      className={`status-badge ${p.active ? 'status-badge--delivered' : 'status-badge--cancelled'}`}
+                      className={`status-badge ${!p.hidden ? 'status-badge--delivered' : 'status-badge--cancelled'}`}
                     >
-                      {p.active ? 'Activo' : 'Inactivo'}
+                      {p.hidden ? 'Oculto' : 'Visible'}
                     </span>
                   </td>
                   <td>
@@ -377,11 +378,16 @@ export default function AdminProductosPage() {
                         Editar
                       </Link>
                       <button
-                        onClick={() => handleToggleActive(p)}
+                        onClick={() => handleToggleHidden(p)}
                         disabled={busyId === p.id}
-                        className="text-xs text-muted-foreground hover:underline disabled:opacity-50"
+                        className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:underline disabled:opacity-50"
                       >
-                        {p.active ? 'Desactivar' : 'Activar'}
+                        {p.hidden ? (
+                          <Eye className="size-3" />
+                        ) : (
+                          <EyeOff className="size-3" />
+                        )}
+                        {p.hidden ? 'Mostrar' : 'Ocultar'}
                       </button>
                       <button
                         onClick={() => handleDelete(p.id, p.name)}

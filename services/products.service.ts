@@ -75,9 +75,6 @@ export const productsService = {
   update: (id: string, input: Partial<ProductInput>) =>
     api.patch<Product>(`/products/${id}`, input),
 
-  /** Borrado lógico (lo marca inactivo, se puede reactivar). */
-  remove: (id: string) => api.delete<{ deleted: boolean }>(`/products/${id}`),
-
   /** Borrado permanente. */
   hardDelete: (id: string) =>
     api.delete<{ deleted: boolean }>(`/products/${id}/hard`),

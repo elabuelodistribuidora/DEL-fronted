@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from 'react'
 import Link from 'next/link'
-import { Loader2, ChevronLeft, ChevronRight } from 'lucide-react'
+import { Loader2, ChevronLeft, ChevronRight, Plus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
   Select,
@@ -57,25 +57,33 @@ export default function AdminOrdenesPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between gap-3">
         <h1 className="font-heading text-2xl font-bold text-foreground">
           Órdenes
         </h1>
-        <Select
-          value={filter}
-          onValueChange={(v) => setFilter(v as OrderStatus | 'all')}
-        >
-          <SelectTrigger className="w-[180px]">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            {STATUS_OPTIONS.map((s) => (
-              <SelectItem key={s} value={s}>
-                {s === 'all' ? 'Todas' : ORDER_STATUS_LABELS[s]}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+        <div className="flex items-center gap-3">
+          <Button asChild size="sm" className="rounded-full">
+            <Link href="/admin/ordenes/nuevo">
+              <Plus className="size-4" />
+              Cargar pedido
+            </Link>
+          </Button>
+          <Select
+            value={filter}
+            onValueChange={(v) => setFilter(v as OrderStatus | 'all')}
+          >
+            <SelectTrigger className="w-[180px]">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {STATUS_OPTIONS.map((s) => (
+                <SelectItem key={s} value={s}>
+                  {s === 'all' ? 'Todas' : ORDER_STATUS_LABELS[s]}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
       </div>
 
       <div className="overflow-x-auto rounded-xl border border-border bg-card">

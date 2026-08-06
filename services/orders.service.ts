@@ -14,6 +14,13 @@ export type CheckoutResponse = {
   order: Order
 }
 
+export type AdminCreateOrderPayload = {
+  userId: string
+  items: { productId: string; quantity: number; variantName?: string }[]
+  shippingAddress: ShippingAddress
+  notes?: string
+}
+
 export const ordersService = {
   checkout: (payload: CheckoutPayload) =>
     api.post<CheckoutResponse>('/orders/checkout', payload),
@@ -43,6 +50,9 @@ export const ordersService = {
   },
 
   // ── Admin ──
+  createManual: (payload: AdminCreateOrderPayload) =>
+    api.post<CheckoutResponse>('/orders/admin', payload),
+
   listAll: (status?: OrderStatus, page = 1, limit = 20) =>
     api.get<Paginated<Order>>(
       `/orders/admin/all?page=${page}&limit=${limit}${status ? `&status=${status}` : ''}`,

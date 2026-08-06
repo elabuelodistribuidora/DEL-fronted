@@ -29,9 +29,9 @@ export default function NosotrosPage() {
           </p>
           <div className="grid gap-6 sm:grid-cols-3">
             {[
-              { value: '+1200', label: 'Productos en catálogo' },
-              { value: '+15', label: 'Marcas representadas' },
-              { value: '10 años', label: 'De trayectoria' },
+              { value: '+6000', label: 'Productos en catálogo' },
+              { value: 'TODAS', label: 'las marcas líderes' },
+              { value: '27 años', label: 'De trayectoria' },
             ].map((stat) => (
               <div key={stat.label} className="rounded-xl border border-border bg-card p-6 text-center">
                 <p className="font-heading text-3xl font-bold text-primary">{stat.value}</p>
